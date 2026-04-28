@@ -10,11 +10,12 @@ import NeverHaveIEverScreen from "./screens/games/NeverHaveIEverScreen";
 import ImposterScreen from "./screens/games/ImposterScreen";
 import ZYNBoxScreen from "./screens/games/ZYNBoxScreen";
 import RiskItScreen from "./screens/games/RiskItScreen";
+import SpinTheBottleScreen from "./screens/games/SpinTheBottleScreen";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 const Stack = createNativeStackNavigator();
 
-function ComingSoonScreen({ route }) {
+function ComingSoonScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "#0B0B14", alignItems: "center", justifyContent: "center" }}>
       <Text style={{ fontSize: 48, marginBottom: 16 }}>🚧</Text>
@@ -49,8 +50,10 @@ function SplashScreen({ onDone }) {
       position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
       zIndex: 999, opacity: exitAnim,
     }}>
-      <LinearGradient colors={["#0D0D0D", "#0D0D0D"]} style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-
+      <LinearGradient
+        colors={["#0D0D0D", "#0D0D0D"]}
+        style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+      >
         {/* Bakgrunns-glow */}
         <View style={{
           position: "absolute", width: 400, height: 400, borderRadius: 200,
@@ -66,71 +69,77 @@ function SplashScreen({ onDone }) {
           opacity: fadeAnim,
           transform: [{ scale: scaleAnim }],
         }}>
-          {/* Ølglass SVG */}
-          <View style={{ width: 160, height: 200, marginBottom: 32 }}>
-            <svg_placeholder />
+
+          {/* Ølglass */}
+          <View style={{ width: 120, height: 170, marginBottom: 32, alignItems: "center" }}>
+            {/* Kork */}
+            <View style={{ width: 14, height: 8, borderRadius: 3, backgroundColor: "#7C3AED", marginBottom: 2 }} />
+            {/* Hals */}
+            <View style={{
+              width: 22, height: 20,
+              borderTopLeftRadius: 4, borderTopRightRadius: 4,
+              borderWidth: 2.5, borderBottomWidth: 0,
+              borderColor: "#7C3AED", backgroundColor: "transparent",
+            }} />
+            {/* Kropp + håndtak */}
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{
+                width: 70, height: 100, borderRadius: 12,
+                borderWidth: 2.5, borderColor: "#7C3AED",
+                backgroundColor: "rgba(124,58,237,0.12)", overflow: "hidden",
+              }}>
+                {/* Skum */}
+                <View style={{
+                  position: "absolute", top: 0, left: 0, right: 0, height: 32,
+                  backgroundColor: "rgba(255,255,255,0.88)",
+                  borderTopLeftRadius: 10, borderTopRightRadius: 10,
+                }} />
+                {/* Refleks */}
+                <View style={{
+                  position: "absolute", left: 8, top: 38,
+                  width: 5, height: 45, borderRadius: 3,
+                  backgroundColor: "rgba(255,255,255,0.12)",
+                }} />
+                {/* Bobler */}
+                <View style={{ position: "absolute", left: 16, top: 55, width: 7, height: 7, borderRadius: 4, backgroundColor: "#7C3AED", opacity: 0.6 }} />
+                <View style={{ position: "absolute", left: 32, top: 48, width: 5, height: 5, borderRadius: 3, backgroundColor: "#FF2C66", opacity: 0.55 }} />
+                <View style={{ position: "absolute", left: 46, top: 62, width: 6, height: 6, borderRadius: 3, backgroundColor: "#7C3AED", opacity: 0.45 }} />
+                <View style={{ position: "absolute", left: 24, top: 72, width: 5, height: 5, borderRadius: 3, backgroundColor: "#FF2C66", opacity: 0.4 }} />
+              </View>
+              {/* Håndtak høyre side */}
+              <View style={{
+                width: 22, height: 50,
+                borderTopRightRadius: 14, borderBottomRightRadius: 14,
+                borderWidth: 2.5, borderLeftWidth: 0,
+                borderColor: "#FF2C66", backgroundColor: "transparent",
+                marginLeft: -2,
+              }} />
+            </View>
+            {/* Bunn */}
+            <View style={{
+              width: 70, height: 9, borderRadius: 5,
+              backgroundColor: "rgba(124,58,237,0.25)",
+              borderWidth: 1.5, borderColor: "#7C3AED", marginTop: -2,
+            }} />
           </View>
 
-          {/* Ølglass tegnet med Views */}
-          <View style={{ width: 140, height: 190, marginBottom: 32, position: "relative" }}>
-            {/* Glass kropp */}
-            <View style={{
-              position: "absolute", top: 0, left: 10, right: 30,
-              bottom: 0, borderRadius: 16,
-              borderWidth: 3, borderColor: "#7C3AED",
-            }} />
-            {/* Håndtak */}
-            <View style={{
-              position: "absolute", right: 0, top: 40,
-              width: 36, height: 70, borderRadius: 18,
-              borderWidth: 3, borderColor: "#FF2C66",
-              borderLeftWidth: 0,
-            }} />
-            {/* Skum */}
-            <View style={{
-              position: "absolute", top: 3, left: 13, right: 33,
-              height: 44, borderRadius: 12,
-              backgroundColor: "#fff", opacity: 0.9,
-            }} />
-            {/* Øl */}
-            <View style={{
-              position: "absolute", top: 47, left: 13, right: 33,
-              bottom: 3, borderRadius: 12,
-              backgroundColor: "#7C3AED", opacity: 0.2,
-            }} />
-            {/* Bobler */}
-            <View style={{ position: "absolute", width: 8, height: 8, borderRadius: 4, backgroundColor: "#7C3AED", opacity: 0.6, left: 30, top: 100 }} />
-            <View style={{ position: "absolute", width: 6, height: 6, borderRadius: 3, backgroundColor: "#FF2C66", opacity: 0.55, left: 55, top: 85 }} />
-            <View style={{ position: "absolute", width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#7C3AED", opacity: 0.45, left: 40, top: 130 }} />
-            <View style={{ position: "absolute", width: 7, height: 7, borderRadius: 3.5, backgroundColor: "#FF2C66", opacity: 0.5, left: 70, top: 115 }} />
-            <View style={{ position: "absolute", width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#7C3AED", opacity: 0.4, left: 25, top: 150 }} />
-          </View>
-
-          {/* Tekst */}
+          {/* BUZZED tekst */}
           <View style={{ flexDirection: "row", alignItems: "baseline" }}>
-            <Text style={{
-              fontSize: 56, fontWeight: "900", color: "#7C3AED", letterSpacing: 4,
-            }}>BUZZ</Text>
-            <Text style={{
-              fontSize: 56, fontWeight: "900", color: "#FF2C66", letterSpacing: 4,
-            }}>ED</Text>
+            <Text style={{ fontSize: 56, fontWeight: "900", color: "#7C3AED", letterSpacing: 4 }}>BUZZ</Text>
+            <Text style={{ fontSize: 56, fontWeight: "900", color: "#FF2C66", letterSpacing: 4 }}>ED</Text>
           </View>
 
           {/* Linje */}
           <View style={{ width: 180, height: 1.5, backgroundColor: "#7C3AED", opacity: 0.3, marginTop: 12 }} />
 
-          <Text style={{
-            color: "rgba(255,255,255,0.28)", fontSize: 13,
-            fontWeight: "700", letterSpacing: 4, marginTop: 12,
-          }}>
+          {/* Undertekst */}
+          <Text style={{ color: "rgba(255,255,255,0.28)", fontSize: 13, fontWeight: "700", letterSpacing: 4, marginTop: 12 }}>
             DRINKING GAME
           </Text>
-          <Text style={{
-            color: "rgba(255,255,255,0.13)", fontSize: 11,
-            fontWeight: "600", letterSpacing: 3, marginTop: 6,
-          }}>
+          <Text style={{ color: "rgba(255,255,255,0.13)", fontSize: 11, fontWeight: "600", letterSpacing: 3, marginTop: 6 }}>
             TURN THE NIGHT LOOSE
           </Text>
+
         </Animated.View>
       </LinearGradient>
     </Animated.View>
@@ -150,6 +159,7 @@ export default function App() {
         <Stack.Screen name="Imposter" component={ImposterScreen} />
         <Stack.Screen name="ZYNBox" component={ZYNBoxScreen} />
         <Stack.Screen name="RiskIt" component={RiskItScreen} />
+        <Stack.Screen name="SpinTheBottle" component={SpinTheBottleScreen} />
         <Stack.Screen name="ComingSoon" component={ComingSoonScreen} />
       </Stack.Navigator>
 

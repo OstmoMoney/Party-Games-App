@@ -60,6 +60,7 @@ const SCREEN_MAP = {
   GameFive:   "Imposter",
   GameFour:   "ZYNBox",
   RiskItGame: "RiskIt",
+  SpinTheBottle: "SpinTheBottle",
 };
 
 export default function ModeSelectScreen({ navigation, route }) {
