@@ -8,60 +8,67 @@ import { LinearGradient } from "expo-linear-gradient";
 
 const { width, height } = Dimensions.get("window");
 
-const COLORS = {
-  bg: "#0B0B14",
-  bgSoft: "#13131F",
-  purple: "#7C3AED",
-  purpleLight: "#9F5FF1",
-  pink: "#FF2C66",
-  gold: "#E6C46A",
-  white: "#FFFFFF",
-  border: "rgba(255,255,255,0.07)",
-};
-
 const GAMES = [
   {
     key: "GameTwo",
     icon: "🍻",
     name: "Never Have I Ever",
     desc: "Klassisk drikkespill, ingen filter",
-    iconBg: "rgba(139,92,246,0.15)",
-    tag: "HOT", tagColor: "#f87171", tagBg: "rgba(255,44,102,0.15)",
+    iconBg: "rgba(255,77,109,0.12)",
+    tag: "HOT", tagColor: "#ff4d6d", tagBg: "rgba(255,77,109,0.12)",
+    accent: "#ff4d6d",
+    locked: false,
+    comingSoon: false,
   },
   {
     key: "GameFive",
     icon: "🎭",
     name: "Imposter",
     desc: "Hvem lyver? Hvem er imposteren?",
-    iconBg: "rgba(14,165,233,0.15)",
+    iconBg: "rgba(96,165,250,0.12)",
+    accent: "#60a5fa",
+    locked: false,
+    comingSoon: false,
   },
   {
     key: "RiskItGame",
     icon: "🤾",
     name: "Risk It",
     desc: "Alle legger en finger på skjermen",
-    iconBg: "rgba(255,44,102,0.15)",
+    iconBg: "rgba(230,196,106,0.12)",
+    accent: "#E6C46A",
+    locked: true,
+    comingSoon: false,
   },
   {
     key: "GameFour",
     icon: "📦",
     name: "ZYN Box",
     desc: "Kast og utfordre vennene dine",
-    iconBg: "rgba(34,197,94,0.15)",
+    iconBg: "rgba(167,139,250,0.12)",
+    accent: "#a78bfa",
+    locked: false,
+    comingSoon: false,
   },
   {
     key: "SpinTheBottle",
     icon: "🍾",
     name: "Spin the Bottle",
     desc: "Sannhet eller tør, spinne-utgaven",
-    iconBg: "rgba(245,158,11,0.15)",
+    iconBg: "rgba(251,191,36,0.12)",
+    accent: "#fbbf24",
+    locked: false,
+    comingSoon: false,
   },
   {
     key: "GameThree",
     icon: "🎴",
     name: "Mafia",
     desc: "Roller, løgner og deduksjon",
-    iconBg: "rgba(255,107,53,0.15)",
+    iconBg: "rgba(255,255,255,0.06)",
+    accent: "#666",
+    locked: false,
+    comingSoon: true,
   },
 ];
 
@@ -79,22 +86,41 @@ export default function HomeScreen({ navigation, route }) {
   const initials = playerName.slice(0, 1).toUpperCase();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(24)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
   const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
     ]).start();
   }, []);
 
-  const goToGame = (gameKey) => {
-    navigation.navigate("ModeSelect", { playerName, game: gameKey });
+  const goToGame = (game) => {
+    if (game.comingSoon) {
+      Alert.alert(
+        "🚧 Kommer snart!",
+        `${game.name} er under utvikling. Følg med for oppdateringer!`,
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    if (game.locked) {
+      Alert.alert(
+        "👑 Party Pass",
+        `${game.name} er låst bak Party Pass. Lås opp alle spill og modes!`,
+        [
+          { text: "Ikke nå", style: "cancel" },
+          { text: "Lås opp", onPress: () => {} },
+        ]
+      );
+      return;
+    }
+    navigation.navigate("ModeSelect", { playerName, game: game.key });
   };
 
   const quickStart = () => {
-    const available = ["GameTwo", "GameFive"];
+    const available = ["GameTwo", "GameFive", "GameFour", "SpinTheBottle"];
     const random = available[Math.floor(Math.random() * available.length)];
     navigation.navigate("ModeSelect", { playerName, game: random });
   };
@@ -102,7 +128,7 @@ export default function HomeScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={[COLORS.bg, "#10101C"]} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={["#0B0B14", "#10101C"]} style={StyleSheet.absoluteFill} />
       <View style={styles.glow1} />
       <View style={styles.glow2} />
       <FloatingBubbles />
@@ -116,7 +142,7 @@ export default function HomeScreen({ navigation, route }) {
 
           {/* Top bar */}
           <View style={styles.topBar}>
-            <LinearGradient colors={[COLORS.purple, COLORS.pink]} style={styles.avatar}>
+            <LinearGradient colors={["#7C3AED", "#FF2C66"]} style={styles.avatar}>
               <Text style={styles.avatarText}>{initials}</Text>
             </LinearGradient>
             <TouchableOpacity style={styles.rulesPill} onPress={() => setShowRules(true)}>
@@ -130,7 +156,7 @@ export default function HomeScreen({ navigation, route }) {
               Hey, <Text style={styles.greetingName}>{playerName}</Text> 👋
             </Text>
             <Text style={styles.bigTitle}>
-              Let's play{"\n"}<Text style={{ color: COLORS.purple }}>tonight.</Text>
+              Let's play{"\n"}<Text style={{ color: "#7C3AED" }}>tonight.</Text>
             </Text>
             <Text style={styles.sub}>Velg et spill og kom i gang</Text>
           </View>
@@ -138,7 +164,7 @@ export default function HomeScreen({ navigation, route }) {
           {/* Quick start */}
           <TouchableOpacity onPress={quickStart} activeOpacity={0.88} style={styles.quickStart}>
             <LinearGradient
-              colors={[COLORS.purple, COLORS.purpleLight]}
+              colors={["#7C3AED", "#9F5FF1"]}
               style={styles.quickStartGrad}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             >
@@ -158,22 +184,41 @@ export default function HomeScreen({ navigation, route }) {
             {GAMES.map((g, i) => (
               <View key={g.key}>
                 <TouchableOpacity
-                  style={styles.gameRow}
-                  onPress={() => goToGame(g.key)}
+                  style={[styles.gameRow, (g.locked || g.comingSoon) && { opacity: 0.55 }]}
+                  onPress={() => goToGame(g)}
                   activeOpacity={0.75}
                 >
+                  {/* Accent stripe */}
+                  <View style={[styles.accentStripe, { backgroundColor: g.accent }]} />
+
                   <View style={[styles.gameIconBox, { backgroundColor: g.iconBg }]}>
                     <Text style={styles.gameIconText}>{g.icon}</Text>
                   </View>
+
                   <View style={styles.gameText}>
                     <Text style={styles.gameName}>{g.name}</Text>
                     <Text style={styles.gameDesc}>{g.desc}</Text>
                   </View>
-                  {g.tag ? (
+
+                  {g.tag && !g.locked && !g.comingSoon && (
                     <View style={[styles.gameTag, { backgroundColor: g.tagBg }]}>
                       <Text style={[styles.gameTagText, { color: g.tagColor }]}>{g.tag}</Text>
                     </View>
-                  ) : (
+                  )}
+
+                  {g.locked && (
+                    <View style={styles.lockedBadge}>
+                      <Text style={styles.lockedBadgeText}>👑 PRO</Text>
+                    </View>
+                  )}
+
+                  {g.comingSoon && (
+                    <View style={styles.soonBadge}>
+                      <Text style={styles.soonBadgeText}>🚧 SNART</Text>
+                    </View>
+                  )}
+
+                  {!g.tag && !g.locked && !g.comingSoon && (
                     <Text style={styles.chevron}>›</Text>
                   )}
                 </TouchableOpacity>
@@ -184,14 +229,14 @@ export default function HomeScreen({ navigation, route }) {
 
           {/* Premium */}
           <TouchableOpacity
-            onPress={() => Alert.alert("👑 Party Pass", "Lås opp Nasj + Blasted i alle spill!", [{ text: "OK" }])}
+            onPress={() => Alert.alert("👑 Party Pass", "Lås opp Risk It, Nasj + Blasted i alle spill!", [{ text: "OK" }])}
             activeOpacity={0.9}
             style={styles.premium}
           >
             <Text style={styles.premiumCrown}>👑</Text>
             <View style={styles.premiumText}>
               <Text style={styles.premiumTitle}>Party Pass</Text>
-              <Text style={styles.premiumSub}>Lås opp Nasj + Blasted i alle spill</Text>
+              <Text style={styles.premiumSub}>Lås opp Risk It + Nasj & Blasted</Text>
             </View>
             <View style={styles.premiumBtn}>
               <Text style={styles.premiumBtnText}>SE PRIS</Text>
@@ -219,7 +264,7 @@ export default function HomeScreen({ navigation, route }) {
             </ScrollView>
             <TouchableOpacity onPress={() => setShowRules(false)} style={styles.closeBtn}>
               <LinearGradient
-                colors={[COLORS.purple, COLORS.purpleLight]}
+                colors={["#7C3AED", "#9F5FF1"]}
                 style={styles.closeBtnGrad}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               >
@@ -335,21 +380,32 @@ const styles = StyleSheet.create({
   },
   gameRow: {
     flexDirection: "row", alignItems: "center",
-    gap: 14, padding: 16,
+    gap: 12, paddingVertical: 14, paddingRight: 16,
   },
+  accentStripe: { width: 4, alignSelf: "stretch" },
   gameIconBox: {
-    width: 50, height: 50, borderRadius: 16,
+    width: 46, height: 46, borderRadius: 14,
     alignItems: "center", justifyContent: "center",
   },
-  gameIconText: { fontSize: 24 },
+  gameIconText: { fontSize: 22 },
   gameText: { flex: 1 },
-  gameName: { color: "#fff", fontSize: 15, fontWeight: "800", marginBottom: 2 },
-  gameDesc: { color: "rgba(255,255,255,0.35)", fontSize: 12 },
-  gameTag: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
-  gameTagText: { fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
+  gameName: { color: "#fff", fontSize: 14, fontWeight: "800", marginBottom: 2 },
+  gameDesc: { color: "rgba(255,255,255,0.35)", fontSize: 11 },
+  gameTag: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 },
+  gameTagText: { fontSize: 9, fontWeight: "800", letterSpacing: 0.5 },
   chevron: { color: "rgba(255,255,255,0.2)", fontSize: 22 },
+  lockedBadge: {
+    backgroundColor: "rgba(230,196,106,0.15)",
+    paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999,
+  },
+  lockedBadgeText: { color: "#E6C46A", fontSize: 9, fontWeight: "800", letterSpacing: 0.5 },
+  soonBadge: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999,
+  },
+  soonBadgeText: { color: "rgba(255,255,255,0.4)", fontSize: 9, fontWeight: "800", letterSpacing: 0.5 },
   dividerLine: {
-    height: 1, backgroundColor: "rgba(255,255,255,0.05)", marginHorizontal: 16,
+    height: 1, backgroundColor: "rgba(255,255,255,0.05)", marginLeft: 72,
   },
   premium: {
     marginHorizontal: 16, borderRadius: 20,
