@@ -1,0 +1,56 @@
+<svg width="1284" height="2778" viewBox="0 0 1284 2778" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FF2C66" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="f2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e8d8ff" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Bakgrunn -->
+  <rect width="1284" height="2778" fill="#0D0D0D"/>
+
+  <!-- Bakgrunns-glow -->
+  <circle cx="642" cy="1389" r="700" fill="#7C3AED" opacity="0.04"/>
+  <circle cx="642" cy="1389" r="400" fill="#FF2C66" opacity="0.04"/>
+
+  <!-- Ølglass kropp -->
+  <path d="M392 1700 L392 900 Q392 780 500 780 L784 780 Q892 780 892 900 L892 1700 Q892 1820 784 1820 L500 1820 Q392 1820 392 1700Z" fill="none" stroke="url(#g2)" stroke-width="20"/>
+
+  <!-- Håndtak -->
+  <path d="M892 1000 Q1040 1000 1040 1160 Q1040 1320 892 1320" fill="none" stroke="url(#g2)" stroke-width="52" stroke-linecap="round"/>
+  <path d="M892 1000 Q1040 1000 1040 1160 Q1040 1320 892 1320" fill="none" stroke="#0D0D0D" stroke-width="22"/>
+
+  <!-- Skum -->
+  <path d="M396 900 Q396 788 500 788 L784 788 Q888 788 888 900 L888 1060 L396 1060Z" fill="url(#f2)" opacity="0.95"/>
+
+  <!-- Øl-farge -->
+  <path d="M396 1060 L888 1060 L888 1700 Q888 1812 784 1812 L500 1812 Q396 1812 396 1700Z" fill="url(#g2)" opacity="0.18"/>
+
+  <!-- Bobler -->
+  <circle cx="500" cy="1380" r="32" fill="#7C3AED" opacity="0.6"/>
+  <circle cx="640" cy="1280" r="24" fill="#FF2C66" opacity="0.55"/>
+  <circle cx="540" cy="1520" r="20" fill="#7C3AED" opacity="0.45"/>
+  <circle cx="740" cy="1440" r="28" fill="#FF2C66" opacity="0.5"/>
+  <circle cx="480" cy="1620" r="18" fill="#7C3AED" opacity="0.4"/>
+  <circle cx="700" cy="1600" r="22" fill="#FF2C66" opacity="0.35"/>
+
+  <!-- Boble-striper -->
+  <line x1="499" y1="1380" x2="499" y2="1060" stroke="#7C3AED" stroke-width="6" opacity="0.2" stroke-dasharray="18,32"/>
+  <line x1="639" y1="1280" x2="639" y2="1060" stroke="#FF2C66" stroke-width="6" opacity="0.16" stroke-dasharray="18,32"/>
+  <line x1="739" y1="1440" x2="739" y2="1060" stroke="#FF2C66" stroke-width="6" opacity="0.14" stroke-dasharray="18,32"/>
+
+  <!-- BUZZED tekst -->
+  <text x="642" y="2100" font-family="Arial Black, sans-serif" font-size="200" font-weight="900" fill="#7C3AED" text-anchor="middle" letter-spacing="12">BUZZ</text>
+  <text x="642" y="2300" font-family="Arial Black, sans-serif" font-size="200" font-weight="900" fill="#FF2C66" text-anchor="middle" letter-spacing="12">ED</text>
+
+  <!-- Linje -->
+  <rect x="340" y="2360" width="604" height="4" rx="2" fill="#7C3AED" opacity="0.25"/>
+
+  <!-- Undertekst -->
+  <text x="642" y="2440" font-family="Arial, sans-serif" font-size="52" font-weight="700" fill="rgba(255,255,255,0.28)" text-anchor="middle" letter-spacing="10">DRINKING GAME</text>
+  <text x="642" y="2520" font-family="Arial, sans-serif" font-size="40" font-weight="600" fill="rgba(255,255,255,0.13)" text-anchor="middle" letter-spacing="8">TURN THE NIGHT LOOSE</text>
+</svg>
