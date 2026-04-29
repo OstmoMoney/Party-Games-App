@@ -6,8 +6,15 @@ const deviceLang =
       NativeModules.SettingsManager?.settings?.AppleLanguages?.[0]
     : NativeModules.I18nManager?.localeIdentifier;
 
-const isNorwegian = deviceLang?.startsWith("nb") || deviceLang?.startsWith("no");
+export const isNorwegian =
+  deviceLang?.startsWith("nb") ||
+  deviceLang?.startsWith("no") ||
+  deviceLang?.startsWith("nn");
 
-export function t(no, en) {
-  return isNorwegian ? no : en;
+export const isJapanese = deviceLang?.startsWith("ja");
+
+export function t(no, en, ja) {
+  if (isNorwegian) return no;
+  if (isJapanese && ja) return ja;
+  return en;
 }

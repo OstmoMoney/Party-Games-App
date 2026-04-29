@@ -13,7 +13,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.buzzed.app"
+      "bundleIdentifier": "com.buzzed.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,6 +24,11 @@
         "backgroundColor": "#0D0D0D"
       },
       "package": "com.buzzed.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2919a675-d316-4e68-99f8-b75dc094beaa"
+      }
     }
   }
 }
