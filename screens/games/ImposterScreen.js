@@ -1,8 +1,15 @@
 import React, { useRef, useEffect, useState } from "react";
 import {
-  View, Text, TouchableOpacity, StyleSheet,
-  Dimensions, Animated, StatusBar, TextInput,
-  ScrollView, Pressable,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  Animated,
+  StatusBar,
+  TextInput,
+  ScrollView,
+  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -10,326 +17,72 @@ const { width, height } = Dimensions.get("window");
 
 const WORDS_BY_MODE = {
   chill: [
-    { word: "iPhone", hint: "Eple" },
-    { word: "Pizza", hint: "brød" },
-    { word: "Netflix", hint: "Kveld" },
-    { word: "Fotball", hint: "Grønn" },
-    { word: "Kaffe", hint: "Morgen" },
-    { word: "Sushi", hint: "Japan" },
-    { word: "Burger", hint: "Brød" },
-    { word: "Taco", hint: "Kjøtt" },
-    { word: "Spotify", hint: "Vibe" },
-    { word: "TikTok", hint: "Doom" },
-    { word: "Instagram", hint: "Fasade" },
-    { word: "Snapchat", hint: "Selfies" },
-    { word: "YouTube", hint: "rød" },
-    { word: "Sykkel", hint: "Danmark" },
-    { word: "Katt", hint: "Stille" },
-    { word: "Hund", hint: "Sniff" },
-    { word: "Sol", hint: "Stråling" },
-    { word: "Strand", hint: "Vann" },
-    { word: "Fly", hint: "Vinger" },
-    { word: "Tog", hint: "Skinner" },
-    { word: "Lader", hint: "Batteri" },
-    { word: "Chrome", hint: "www" },
-    { word: "Snus", hint: "lepper" },
-    { word: "Alkohol", hint: "Helg" },
-    { word: "Michael Jackson", hint: "Svart og hvit" },
-    { word: "Kina", hint: "Mur" },
-    { word: "Weed", hint: "Papir" },
-    { word: "Kebab", hint: "Natt" },
-    { word: "Måne", hint: "Ost" },
-    { word: "Verdensrommet", hint: "Borte" },
-    { word: "Full", hint: "Nå" },
-    { word: "Hjem", hint: "Kjærlighet" },
-    { word: "App", hint: "daglig bruk" },
-    { word: "Meghan Fox", hint: "Prime" },
-    { word: "Marvel", hint: "Infinity" },
-    { word: "John Snow", hint: "Vinter" },
-    { word: "Titanic", hint: "Dør" },
-    { word: "Jobb", hint: "Arbeid" },
-    { word: "Kunstig intelligens", hint: "Tokens" },
-    { word: "Avis", hint: "Papir" },
-    { word: "Dopamin", hint: "Like" },
-{ word: "Russ", hint: "Mai" },
-{ word: "Gym", hint: "Speil" },
-{ word: "Protein", hint: "Bro" },
-{ word: "Crocs", hint: "Stygg" },
-{ word: "Airpods", hint: "Ignorering" },
-{ word: "Tesla", hint: "Stille" },
-{ word: "Elon Musk", hint: "Twitter" },
-{ word: "ChatGPT", hint: "Jukse" },
-{ word: "Reddit", hint: "Kjeller" },
-{ word: "Wikipedia", hint: "Kopi" },
-{ word: "Google Maps", hint: "Machomann" },
-{ word: "Ikea", hint: "Skrue" },
-{ word: "Rema 1000", hint: "Billig" },
-{ word: "Grandiosa", hint: "Norsk" },
-{ word: "Brunost", hint: "Fjell" },
-{ word: "Lutefisk", hint: "Nei" },
-{ word: "Pils", hint: "Fredag" },
-{ word: "Hangover", hint: "Anger" },
-{ word: "Eksamen", hint: "Panikk" },
-{ word: "Lekser", hint: "Glem" },
-{ word: "Alarm", hint: "Snooze" },
-{ word: "Møte", hint: "Epost" },
-{ word: "PowerPoint", hint: "Sovne" },
-{ word: "Excel", hint: "Smerte" },
-{ word: "Passord", hint: "Glemt" },
-{ word: "Wifi", hint: "Overleve" },
-{ word: "Ladetid", hint: "Vente" },
-{ word: "Flatskjerm", hint: "Sofa" },
-{ word: "Playstation", hint: "Controller" },
-{ word: "Minecraft", hint: "Firkant" },
-{ word: "Among Us", hint: "Imposter" },
-{ word: "Fortnite", hint: "Dans" },
-{ word: "Dark Souls", hint: "Du døde" },
-{ word: "Kanye West", hint: "Ego" },
-{ word: "Drake", hint: "Goofy" },
-{ word: "Taylor Swift", hint: "Ex" },
-{ word: "Ronaldo", hint: "GOAT" },
-{ word: "Messi", hint: "GOAT" },
-{ word: "Hollywood", hint: "Skuespiller" },
-{ word: "Norway", hint: "Olje" },
-{ word: "Sverige", hint: "Flat" },
-{ word: "Danmark", hint: "Sykkel" },
-{ word: "Russland", hint: "Kald" },
-{ word: "USA", hint: "Burger" },
-{ word: "Paris", hint: "Tårn" },
-{ word: "Influenser", hint: "Gratis" },
-{ word: "Selfie", hint: "Vinkel" },
-{ word: "Filter", hint: "Løgn" },
-{ word: "Karma", hint: "Fortjent" },
+    { word: "iPhone", hint: "Apple" },
+    { word: "Pizza", hint: "Cheese" },
+    { word: "Netflix", hint: "Series" },
+    { word: "Spotify", hint: "Music" },
+  ],
 
-  ],
   drunk: [
-    { word: "Øl", hint: "kcal" },
-    { word: "Vin", hint: "Druer" },
-    { word: "Vodka", hint: "Russland" },
-    { word: "Tequila", hint: "Sitron" },
-    { word: "Whisky", hint: "Skottland" },
-    { word: "Red Bull", hint: "Energi" },
-    { word: "Snus", hint: "Leppa" },
-    { word: "Sigarett", hint: "Røyk" },
-    { word: "Vape", hint: "Damp" },
-    { word: "Shots", hint: "En slurk" },
-    { word: "Nachspiel", hint: "Etter festen" },
-    { word: "Vorsj", hint: "Før festen" },
-    { word: "Fest", hint: "Party" },
-    { word: "DJ", hint: "Musikk" },
-    { word: "Dansegulv", hint: "Beina" },
-    { word: "Taxi", hint: "Hjem" },
-    { word: "Kebab", hint: "Nattmat" },
-    { word: "Kø", hint: "Vente" },
-    { word: "Stempel", hint: "Inn" },
-    { word: "Bartender", hint: "Drink" },
-    { word: "One night stand", hint: "Angrer" },
-{ word: "Tinder", hint: "Swipe" },
-{ word: "Ex", hint: "Blokkert" },
-{ word: "Ghosting", hint: "Forsvant" },
-{ word: "Cringe", hint: "Fortid" },
-{ word: "Bakrus", hint: "Fortjent" },
-{ word: "Taxi", hint: "Skam" },
-{ word: "Kebab", hint: "03:00" },
-{ word: "Afterparty", hint: "Feil valg" },
-{ word: "Vodka", hint: "Angrer" },
-{ word: "Jagermeister", hint: "Hvorfor" },
-{ word: "Shots", hint: "Nei" },
-{ word: "Dansegulv", hint: "Svett" },
-{ word: "DJ", hint: "Banger" },
-{ word: "Kø", hint: "Kald" },
-{ word: "Bouncer", hint: "Nei takk" },
-{ word: "Fake ID", hint: "16" },
-{ word: "Snapstreak", hint: "Prioritet" },
-{ word: "Lesing", hint: "Seinere" },
-{ word: "Studielån", hint: "Gratis" },
-{ word: "Kollektiv", hint: "Andres mat" },
-{ word: "Husleie", hint: "Gråt" },
-{ word: "Rydde", hint: "Aldri" },
-{ word: "Vaskemaskinen", hint: "Sjelden" },
-{ word: "Mamma", hint: "Savner" },
-{ word: "Hjemsted", hint: "Jul" },
-{ word: "Diett", hint: "Mandag" },
-{ word: "Treningsabo", hint: "Aldri" },
-{ word: "Healhy girl", hint: "Stanley" },
-{ word: "Red flag", hint: "Tiltrekker" },
-{ word: "Gaslighting", hint: "Du overdriver" },
-{ word: "Talking stage", hint: "Evig" },
-{ word: "Situationship", hint: "Hva er vi" },
-{ word: "Brunch", hint: "Søndag" },
-{ word: "Mimosa", hint: "Classy" },
-{ word: "Avokado", hint: "Bolig" },
-{ word: "Leilighet", hint: "Drøm" },
-{ word: "LinkedIn", hint: "Fake" },
-{ word: "CV", hint: "Løgn" },
-{ word: "Intervju", hint: "Skjorte" },
-{ word: "Sjef", hint: "Idiot" },
-{ word: "Overtid", hint: "Gratis" },
-{ word: "Panikkanfall", hint: "Søndag kveld" },
-{ word: "Terapi", hint: "Venter" },
-{ word: "Selvutvikling", hint: "Podcast" },
-{ word: "Astologi", hint: "Unnskyldning" },
-{ word: "Horoskop", hint: "Merkur" },
-{ word: "Manifestering", hint: "Lat" },
-{ word: "Burnout", hint: "April" },
-{ word: "YOLO", hint: "Angrer" },
+    { word: "Vodka", hint: "Russia" },
+    { word: "Beer", hint: "Friday" },
+    { word: "Shots", hint: "Fast" },
+    { word: "Tequila", hint: "Lime" },
   ],
+
   nasj: [
-    { word: "Onlyfans", hint: "Abonnement" },
-    { word: "Tinder", hint: "Sveip" },
-    { word: "Hinge", hint: "Dating" },
-    { word: "Grindr", hint: "App" },
-    { word: "Stripklubb", hint: "Dans" },
-    { word: "Threesome", hint: "Tre" },
-    { word: "Sexting", hint: "Meldinger" },
-    { word: "One night stand", hint: "En natt" },
-    { word: "Fuckbuddy", hint: "Venn" },
-    { word: "Ghosting", hint: "Forsvinner" },
-    { word: "Netflix and chill", hint: "Film" },
-    { word: "Booty call", hint: "Seint" },
-    { word: "Situasjonship", hint: "Komplisert" },
-    { word: "Open relationship", hint: "Åpent" },
-    { word: "Eks", hint: "Før" },
-    { word: "Crush", hint: "Hjertebank" },
-    { word: "Date", hint: "Middag" },
-    { word: "Kyss", hint: "Lepper" },
-    { word: "Nakenbilder", hint: "Privat" },
-    { word: "Afterglow", hint: "Etterpå" },
-    { word: "Fordrink", hint: "Viktigst" },
-{ word: "Pres", hint: "Drikk" },
-{ word: "Bjelke", hint: "Full" },
-{ word: "Fylleangst", hint: "Mandag" },
-{ word: "Fylleprat", hint: "Sannhet" },
-{ word: "Fylla", hint: "Bestem" },
-{ word: "Nachspiel", hint: "Feil valg" },
-{ word: "Promille", hint: "Mål" },
-{ word: "Hasjis", hint: "Snop" },
-{ word: "Røyk", hint: "Utenfor" },
-{ word: "Balkongen", hint: "Røyk" },
-{ word: "Baderomskø", hint: "Lang" },
-{ word: "Toalett", hint: "Klem" },
-{ word: "Bestevenn", hint: "I kveld" },
-{ word: "Klem", hint: "Full" },
-{ word: "Gråte", hint: "Ingen grunn" },
-{ word: "Konfesjon", hint: "Full" },
-{ word: "Sannhet eller Tør", hint: "Farlig" },
-{ word: "Flasketuten peker på", hint: "Kyss" },
-{ word: "Aldri har jeg", hint: "Avsløring" },
-{ word: "Rings of fire", hint: "Regler" },
-{ word: "Beerping", hint: "Bord" },
-{ word: "Kings", hint: "Kort" },
-{ word: "Jagermeister", hint: "Angrer" },
-{ word: "Fireball", hint: "Søt løgn" },
-{ word: "Cider", hint: "Lett" },
-{ word: "Øl", hint: "Billig" },
-{ word: "Vinpose", hint: "Klem" },
-{ word: "Boks", hint: "Lettvekter" },
-{ word: "Vorspiel", hint: "Beste delen" },
-{ word: "Hyttetur", hint: "Bråk" },
-{ word: "Campingtur", hint: "Regn" },
-{ word: "Festival", hint: "Gjørme" },
-{ word: "Telt", hint: "Angrer" },
-{ word: "Sovepose", hint: "To" },
-{ word: "Snapchat stories", hint: "Bevis" },
-{ word: "Gruppebildet", hint: "Ingen husker" },
-{ word: "Telefonen", hint: "Tapt" },
-{ word: "Lommeboka", hint: "Tom" },
-{ word: "Nøkler", hint: "Borte" },
-{ word: "Sko", hint: "Av" },
-{ word: "Sminke", hint: "Nedover" },
-{ word: "Hår", hint: "Kaos" },
-{ word: "Pizza bestilt", hint: "Glemt" },
-{ word: "Vann", hint: "For sent" },
-{ word: "Paracet", hint: "Morgen" },
-{ word: "Seng", hint: "Savner" },
-{ word: "Naboklage", hint: "Fortjent" },
-{ word: "Volum", hint: "For høyt" },
-{ word: "Politiet", hint: "Ops" },
+    { word: "Tinder", hint: "Swipe" },
+    { word: "Ghosting", hint: "Gone" },
+    { word: "Situationship", hint: "Confusing" },
+    { word: "One Night Stand", hint: "Regret" },
   ],
+
   blasted: [
-    { word: "Kokain", hint: "Hvitt pulver" },
-    { word: "MDMA", hint: "Pille" },
-    { word: "Hasj", hint: "Røyk" },
-    { word: "Speed", hint: "Amfetamin" },
-    { word: "Ketamin", hint: "K-hole" },
-    { word: "Strippeklubb", hint: "Dans" },
-    { word: "Svart marked", hint: "Ulovlig" },
-    { word: "Fengsel", hint: "Bak lås" },
-    { word: "Politi", hint: "Blålys" },
-    { word: "Utpressing", hint: "Trusler" },
-    { word: "Hevnporno", hint: "Nett" },
-    { word: "Doping", hint: "Sport" },
-    { word: "Sexklubb", hint: "Privat" },
-    { word: "Kriminell", hint: "Loven" },
-    { word: "Dealer", hint: "Selger" },
-    { word: "Underground", hint: "Hemmelig" },
-    { word: "Swinger", hint: "Bytte" },
-    { word: "Fetish", hint: "Spesielt" },
-    { word: "Dark web", hint: "Skjult nett" },
-    { word: "Ransom", hint: "Løsepenger" },
-    { word: "Fordrink", hint: "Viktigst" },
-{ word: "Blackjack", hint: "21" },
-{ word: "Poker", hint: "Kveld" },
-{ word: "Penger", hint: "Mynt" },
-{ word: "Fylleprat", hint: "Sannhet" },
-{ word: "Blasted", hint: "Ikveld" },
-{ word: "Call of duty", hint: "Black ops" },
-{ word: "Promille", hint: "Mål" },
-{ word: "Hasjis", hint: "Snop" },
-{ word: "Røyk", hint: "Utenfor" },
-{ word: "Balkongen", hint: "Fransk" },
-{ word: "Toalett", hint: "Tissetrengt" },
-{ word: "Bergen", hint: "Regn" },
-{ word: "Bestevenn", hint: "I kveld" },
-{ word: "Klem", hint: "Full" },
-{ word: "Gråte", hint: "Ingen grunn" },
-{ word: "Elsk", hint: "Full" },
-{ word: "Shots", hint: "Fireball" },
-{ word: "Den til venstre for start-spiller", hint: "Klær" },
-{ word: "Tog", hint: "Japan" },
-{ word: "Rings of fire", hint: "Regler" },
-{ word: "Beerpong", hint: "Bord" },
-{ word: "Konge", hint: "Kort" },
-{ word: "Jagermeister", hint: "Cola" },
-{ word: "Hus", hint: "Åpent" },
-{ word: "Cider", hint: "Lett" },
-{ word: "Øl", hint: "Billig" },
-{ word: "Hvitvin", hint: "Dame" },
-{ word: "Trening", hint: "Opptatt" },
-{ word: "Headset", hint: "Musikk" },
-{ word: "Skitur", hint: "Stemning" },
-{ word: "Campingtur", hint: "Fisk" },
-{ word: "Festival", hint: "Gjørme" },
-{ word: "Abella Danger", hint: "Topp" },
-{ word: "Misjoner", hint: "To" },
-{ word: "Snapchat stories", hint: "Bevis" },
-{ word: "Doggy", hint: "Elsk" },
-{ word: "Høy", hint: "April" },
-{ word: "Hitler", hint: "Respekt" },
-{ word: "Madonna", hint: "Pop" },
-{ word: "Air Force", hint: "Hvit" },
-{ word: "Rompe", hint: "Elsk" },
-{ word: "Hår", hint: "Rødt" },
-{ word: "Cartoon", hint: "Hentai" },
-{ word: "BDSM", hint: "Sub" },
-{ word: "Kink", hint: "Alle" },
-{ word: "Seng", hint: "Partner" },
-{ word: "Rizz", hint: "Damer" },
-{ word: "Glowup", hint: "Meg" },
-{ word: "Hasbullah", hint: "Legend" },
+    { word: "Casino", hint: "Money" },
+    { word: "Dark Web", hint: "Hidden" },
+    { word: "Dealer", hint: "Illegal" },
+    { word: "BDSM", hint: "Kink" },
   ],
 };
 
 const MODE_STYLE = {
-  chill:   { color: "#4ade80", bg: ["#080f0a", "#0a1a0e"], label: "Chill",   emoji: "😊" },
-  drunk:   { color: "#60a5fa", bg: ["#080f1a", "#0a1830"], label: "Drunk",   emoji: "🍻" },
-  nasj:    { color: "#fb923c", bg: ["#140a04", "#241208"], label: "Nasj",    emoji: "🔥" },
-  blasted: { color: "#f87171", bg: ["#140606", "#240a0a"], label: "Blasted", emoji: "💀" },
+  chill: {
+    color: "#25D98A",
+    soft: "rgba(37,217,138,0.22)",
+    bg: ["#101A16", "#07100D", "#050711"],
+    label: "Chill",
+    emoji: "😊",
+  },
+
+  drunk: {
+    color: "#4F7BFF",
+    soft: "rgba(79,123,255,0.22)",
+    bg: ["#10162A", "#080B19", "#050711"],
+    label: "Drunk",
+    emoji: "🍻",
+  },
+
+  nasj: {
+    color: "#FB923C",
+    soft: "rgba(251,146,60,0.22)",
+    bg: ["#24160D", "#100A08", "#050711"],
+    label: "Nasj",
+    emoji: "🔥",
+  },
+
+  blasted: {
+    color: "#F87171",
+    soft: "rgba(248,113,113,0.22)",
+    bg: ["#241012", "#100709", "#050711"],
+    label: "Blasted",
+    emoji: "💀",
+  },
 };
 
 export default function ImposterScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
   const mode = route?.params?.mode || "chill";
+
   const style = MODE_STYLE[mode] || MODE_STYLE.chill;
   const words = WORDS_BY_MODE[mode] || WORDS_BY_MODE.chill;
 
@@ -340,20 +93,45 @@ export default function ImposterScreen({ navigation, route }) {
   const [revealed, setRevealed] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const slideAnim = useRef(new Animated.Value(25)).current;
   const holdScale = useRef(new Animated.Value(1)).current;
-  const holdOpacity = useRef(new Animated.Value(1)).current;
-  const cardAnim = useRef(new Animated.Value(1)).current;
+  const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 650,
+        useNativeDriver: true,
+      }),
+
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 650,
+        useNativeDriver: true,
+      }),
     ]).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: 1,
+          duration: 1800,
+          useNativeDriver: true,
+        }),
+
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: 1800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   const startGame = () => {
     const list = players.filter((p) => p.trim().length > 0);
+
     if (list.length < 3) return;
 
     const picked = words[Math.floor(Math.random() * words.length)];
@@ -361,8 +139,16 @@ export default function ImposterScreen({ navigation, route }) {
 
     const generated = list.map((name, i) =>
       i === imposterIdx
-        ? { name, type: "imposter", hint: picked.hint }
-        : { name, type: "player", word: picked.word }
+        ? {
+            name,
+            type: "imposter",
+            hint: picked.hint,
+          }
+        : {
+            name,
+            type: "player",
+            word: picked.word,
+          }
     );
 
     setRoles(generated);
@@ -371,25 +157,14 @@ export default function ImposterScreen({ navigation, route }) {
     setPhase("reveal");
   };
 
-  const onHoldIn = () => {
-    Animated.spring(holdScale, { toValue: 0.96, useNativeDriver: true }).start();
-    setRevealed(true);
-  };
-
-  const onHoldOut = () => {
-    Animated.spring(holdScale, { toValue: 1, useNativeDriver: true }).start();
-  };
-
   const next = () => {
-    Animated.timing(cardAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => {
-      setRevealed(false);
-      if (index + 1 >= roles.length) {
-        setPhase("done");
-      } else {
-        setIndex((i) => i + 1);
-      }
-      Animated.timing(cardAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
-    });
+    setRevealed(false);
+
+    if (index + 1 >= roles.length) {
+      setPhase("done");
+    } else {
+      setIndex(index + 1);
+    }
   };
 
   const restart = () => {
@@ -398,70 +173,186 @@ export default function ImposterScreen({ navigation, route }) {
     setRoles([]);
     setIndex(0);
     setRevealed(false);
-    cardAnim.setValue(1);
   };
+
+  const floatY = floatAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -8],
+  });
+
+  const validPlayers = players.filter((p) => p.trim().length > 0).length;
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={style.bg} style={StyleSheet.absoluteFill} />
-      <View style={[styles.glowTop, { backgroundColor: style.color }]} />
 
-      {/* Top bar — always visible */}
-      <Animated.View style={[styles.topBar, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+      <LinearGradient
+        colors={style.bg}
+        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <View
+        style={[
+          styles.colorBlob,
+          {
+            backgroundColor: style.soft,
+            shadowColor: style.color,
+          },
+        ]}
+      />
+
+      <LinearGradient
+        colors={["rgba(5,7,17,0)", "#050711"]}
+        style={styles.darkFade}
+      />
+
+      <Animated.View
+        style={[
+          styles.topBar,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+        >
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
-        <View style={[styles.modePill, { backgroundColor: style.color + "22", borderColor: style.color + "55" }]}>
+
+        <View style={styles.modePill}>
           <Text style={styles.modeEmoji}>{style.emoji}</Text>
-          <Text style={[styles.modeLabel, { color: style.color }]}>{style.label}</Text>
+
+          <Text
+            style={[
+              styles.modeLabel,
+              {
+                color: style.color,
+              },
+            ]}
+          >
+            {style.label}
+          </Text>
         </View>
-        <View style={{ width: 40 }} />
+
+        <View style={{ width: 52 }} />
       </Animated.View>
 
-      {/* SETUP PHASE */}
       {phase === "setup" && (
-        <Animated.View style={[styles.phase, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.setupScroll}>
-            <Text style={styles.setupTitle}>🎭 Imposter</Text>
-            <Text style={styles.setupDesc}>
-              Send telefonen rundt. Én spiller er imposteren og kjenner ikke ordet — bare et hint. Alle gir hint, imposteren prøver å passe inn.
-            </Text>
+        <Animated.View
+          style={[
+            styles.phase,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scroll}
+          >
+            <View style={styles.hero}>
+              <Text style={styles.eyebrow}>IMPOSTER MODE</Text>
 
-            <View style={styles.rulesRow}>
-              <View style={styles.ruleChip}>
-                <Text style={styles.ruleChipText}>✅ Imposter vinner → alle tar slurk</Text>
+              <Text style={styles.heroTitle}>
+                Who is{"\n"}lying?
+              </Text>
+
+              <Text style={styles.heroSub}>
+                Everyone gets the same word except one player.
+              </Text>
+
+              <Animated.View
+                style={[
+                  styles.heroEmojiWrap,
+                  {
+                    transform: [
+                      { translateY: floatY },
+                      { rotate: "-8deg" },
+                    ],
+                  },
+                ]}
+              >
+                <Text style={styles.heroEmoji}>🎭</Text>
+              </Animated.View>
+            </View>
+
+            <View style={styles.infoCard}>
+              <Text style={styles.infoTitle}>How it works</Text>
+
+              <View style={styles.ruleRow}>
+                <Text style={styles.ruleEmoji}>👀</Text>
+
+                <Text style={styles.ruleText}>
+                  Everyone gets a word except the imposter.
+                </Text>
               </View>
-              <View style={styles.ruleChip}>
-                <Text style={styles.ruleChipText}>❌ Imposter tapes → 2 slurker</Text>
+
+              <View style={styles.ruleRow}>
+                <Text style={styles.ruleEmoji}>🎭</Text>
+
+                <Text style={styles.ruleText}>
+                  The imposter only gets a hint.
+                </Text>
+              </View>
+
+              <View style={styles.ruleRow}>
+                <Text style={styles.ruleEmoji}>🍻</Text>
+
+                <Text style={styles.ruleText}>
+                  Vote for who you think is lying.
+                </Text>
               </View>
             </View>
 
-            <Text style={styles.sectionLabel}>SPILLERE</Text>
+            <Text style={styles.sectionLabel}>PLAYERS</Text>
 
             {players.map((p, i) => (
               <View key={i} style={styles.inputRow}>
-                <View style={[styles.inputIcon, { backgroundColor: style.color + "22" }]}>
-                  <Text style={[styles.inputIconText, { color: style.color }]}>{i + 1}</Text>
+                <View
+                  style={[
+                    styles.inputIcon,
+                    {
+                      backgroundColor: `${style.color}22`,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.inputIconText,
+                      {
+                        color: style.color,
+                      },
+                    ]}
+                  >
+                    {i + 1}
+                  </Text>
                 </View>
+
                 <TextInput
                   value={p}
-                  placeholder={`Spiller ${i + 1}`}
-                  placeholderTextColor="rgba(255,255,255,0.25)"
+                  placeholder={`Player ${i + 1}`}
+                  placeholderTextColor="rgba(255,255,255,0.26)"
                   onChangeText={(text) => {
                     const copy = [...players];
                     copy[i] = text;
                     setPlayers(copy);
                   }}
                   style={styles.input}
-                  autoCapitalize="words"
                 />
+
                 {i >= 3 && (
                   <TouchableOpacity
-                    onPress={() => setPlayers(players.filter((_, idx) => idx !== i))}
                     style={styles.removeBtn}
+                    onPress={() =>
+                      setPlayers(players.filter((_, idx) => idx !== i))
+                    }
                   >
-                    <Text style={styles.removeBtnText}>✕</Text>
+                    <Text style={styles.removeBtnText}>×</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -469,127 +360,201 @@ export default function ImposterScreen({ navigation, route }) {
 
             {players.length < 12 && (
               <TouchableOpacity
+                activeOpacity={0.86}
                 style={styles.addBtn}
                 onPress={() => setPlayers([...players, ""])}
               >
-                <Text style={[styles.addBtnText, { color: style.color }]}>+ Legg til spiller</Text>
+                <Text
+                  style={[
+                    styles.addBtnText,
+                    {
+                      color: style.color,
+                    },
+                  ]}
+                >
+                  + Add player
+                </Text>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity
+              activeOpacity={0.9}
+              disabled={validPlayers < 3}
               style={[
                 styles.startBtn,
-                { backgroundColor: style.color },
-                players.filter((p) => p.trim().length > 0).length < 3 && styles.startBtnDisabled,
+                validPlayers < 3 && styles.disabledBtn,
               ]}
               onPress={startGame}
-              activeOpacity={0.85}
             >
-              <Text style={styles.startBtnText}>START SPILLET →</Text>
+              <LinearGradient
+                colors={[style.color, "#B92BFF"]}
+                style={styles.startGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.startBtnText}>
+                  START GAME →
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
           </ScrollView>
         </Animated.View>
       )}
 
-      {/* REVEAL PHASE */}
       {phase === "reveal" && (
-        <View style={styles.phase}>
-          <View style={styles.revealContent}>
-            <Text style={styles.revealSub}>Gi telefonen til</Text>
-            <Text style={styles.revealName}>{roles[index]?.name}</Text>
-            <Text style={[styles.revealCounter, { color: style.color }]}>
-              {index + 1} / {roles.length}
-            </Text>
+        <View style={styles.revealContent}>
+          <Text style={styles.revealSub}>Give phone to</Text>
 
-            <Pressable onPressIn={onHoldIn} onPressOut={onHoldOut}>
-              <Animated.View
-                style={[
-                  styles.revealCard,
-                  {
-                    transform: [{ scale: holdScale }],
-                    borderColor: revealed ? style.color + "55" : "rgba(255,255,255,0.1)",
-                  },
-                ]}
-              >
-                <Animated.View style={{ opacity: cardAnim }}>
-                  {!revealed && (
-                    <View style={styles.holdContent}>
-                      <Text style={styles.holdIcon}>👆</Text>
-                      <Text style={styles.holdText}>Hold inne for å se</Text>
-                      <Text style={styles.holdSub}>Ikke vis til andre</Text>
-                    </View>
-                  )}
+          <Text style={styles.revealName}>
+            {roles[index]?.name}
+          </Text>
 
-                  {revealed && roles[index]?.type === "player" && (
-                    <View style={styles.cardContent}>
-                      <View style={[styles.cardBadge, { backgroundColor: style.color + "22" }]}>
-                        <Text style={[styles.cardBadgeText, { color: style.color }]}>DITT ORD</Text>
-                      </View>
-                      <Text style={styles.cardWord}>{roles[index]?.word}</Text>
-                      <Text style={styles.cardHint}>Du er ikke imposteren 👍</Text>
-                    </View>
-                  )}
+          <Pressable
+            onPressIn={() => {
+              setRevealed(true);
 
-                  {revealed && roles[index]?.type === "imposter" && (
-                    <View style={styles.cardContent}>
-                      <View style={[styles.cardBadge, { backgroundColor: "rgba(248,113,113,0.2)" }]}>
-                        <Text style={[styles.cardBadgeText, { color: "#f87171" }]}>DU ER IMPOSTEREN 💀</Text>
-                      </View>
-                      <Text style={[styles.cardWord, { color: "#f87171" }]}>???</Text>
-                      <Text style={styles.cardHint}>Hint: {roles[index]?.hint}</Text>
-                    </View>
-                  )}
-                </Animated.View>
-              </Animated.View>
-            </Pressable>
+              Animated.spring(holdScale, {
+                toValue: 0.97,
+                useNativeDriver: true,
+              }).start();
+            }}
+            onPressOut={() => {
+              Animated.spring(holdScale, {
+                toValue: 1,
+                useNativeDriver: true,
+              }).start();
+            }}
+          >
+            <Animated.View
+              style={[
+                styles.revealCard,
+                {
+                  transform: [{ scale: holdScale }],
+                },
+              ]}
+            >
+              {!revealed && (
+                <View style={styles.holdContent}>
+                  <Text style={styles.holdEmoji}>👆</Text>
 
-            {revealed && (
-              <TouchableOpacity
-                style={[styles.nextBtn, { backgroundColor: style.color }]}
-                onPress={next}
-                activeOpacity={0.85}
+                  <Text style={styles.holdTitle}>
+                    Hold to reveal
+                  </Text>
+
+                  <Text style={styles.holdSub}>
+                    Don’t show anyone else
+                  </Text>
+                </View>
+              )}
+
+              {revealed && roles[index]?.type === "player" && (
+                <View style={styles.cardContent}>
+                  <View
+                    style={[
+                      styles.cardBadge,
+                      {
+                        backgroundColor: `${style.color}22`,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.cardBadgeText,
+                        {
+                          color: style.color,
+                        },
+                      ]}
+                    >
+                      YOUR WORD
+                    </Text>
+                  </View>
+
+                  <Text style={styles.cardWord}>
+                    {roles[index]?.word}
+                  </Text>
+
+                  <Text style={styles.cardHint}>
+                    You are not the imposter
+                  </Text>
+                </View>
+              )}
+
+              {revealed && roles[index]?.type === "imposter" && (
+                <View style={styles.cardContent}>
+                  <View style={styles.imposterBadge}>
+                    <Text style={styles.imposterBadgeText}>
+                      YOU ARE THE IMPOSTER
+                    </Text>
+                  </View>
+
+                  <Text style={styles.imposterWord}>???</Text>
+
+                  <Text style={styles.cardHint}>
+                    Hint: {roles[index]?.hint}
+                  </Text>
+                </View>
+              )}
+            </Animated.View>
+          </Pressable>
+
+          {revealed && (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.nextBtn}
+              onPress={next}
+            >
+              <LinearGradient
+                colors={[style.color, "#B92BFF"]}
+                style={styles.nextGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
               >
                 <Text style={styles.nextBtnText}>
-                  {index + 1 >= roles.length ? "Alle klare →" : "Neste spiller →"}
+                  {index + 1 >= roles.length
+                    ? "Everyone ready →"
+                    : "Next player →"}
                 </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
-      {/* DONE PHASE */}
       {phase === "done" && (
-        <View style={styles.phase}>
-          <View style={styles.doneContent}>
-            <Text style={styles.doneEmoji}>🎭</Text>
-            <Text style={styles.doneTitle}>Alle klare!</Text>
-            <Text style={styles.doneSub}>
-              Diskuter, gi hint og finn imposteren.{"\n"}Imposteren prøver å passe inn!
-            </Text>
+        <View style={styles.doneContent}>
+          <Text style={styles.doneEmoji}>🎭</Text>
 
-            <View style={styles.doneRules}>
-              <View style={[styles.doneRule, { borderColor: style.color + "33" }]}>
-                <Text style={styles.doneRuleEmoji}>✅</Text>
-                <Text style={styles.doneRuleText}>Imposter vinner → alle andre tar slurk</Text>
-              </View>
-              <View style={[styles.doneRule, { borderColor: "rgba(248,113,113,0.3)" }]}>
-                <Text style={styles.doneRuleEmoji}>❌</Text>
-                <Text style={styles.doneRuleText}>Imposter avslørt → imposteren tar 2 slurker</Text>
-              </View>
-            </View>
+          <Text style={styles.doneTitle}>
+            Everyone ready!
+          </Text>
 
-            <TouchableOpacity
-              style={[styles.restartBtn, { backgroundColor: style.color }]}
-              onPress={restart}
-              activeOpacity={0.85}
+          <Text style={styles.doneSub}>
+            Discuss, give clues and find the imposter.
+          </Text>
+
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.restartBtn}
+            onPress={restart}
+          >
+            <LinearGradient
+              colors={[style.color, "#B92BFF"]}
+              style={styles.restartGradient}
             >
-              <Text style={styles.restartBtnText}>Spill igjen 🔄</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.homeBtn} onPress={() => navigation.popToTop()}>
-              <Text style={styles.homeBtnText}>← Tilbake til hjem</Text>
-            </TouchableOpacity>
-          </View>
+              <Text style={styles.restartBtnText}>
+                Play Again 🔄
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.homeBtn}
+            onPress={() => navigation.popToTop()}
+          >
+            <Text style={styles.homeBtnText}>
+              ← Back Home
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -597,137 +562,446 @@ export default function ImposterScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  glowTop: {
-    position: "absolute", top: -100, left: width / 2 - 130,
-    width: 260, height: 260, borderRadius: 130, opacity: 0.1,
+  container: {
+    flex: 1,
+    backgroundColor: "#050711",
   },
+
+  colorBlob: {
+    position: "absolute",
+    top: -150,
+    right: -180,
+    width: width * 1.2,
+    height: width * 1.2,
+    borderRadius: width,
+    shadowOpacity: 1,
+    shadowRadius: 100,
+    shadowOffset: { width: 0, height: 0 },
+  },
+
+  darkFade: {
+    position: "absolute",
+    top: height * 0.35,
+    left: 0,
+    right: 0,
+    height: height * 0.45,
+  },
+
   topBar: {
-    flexDirection: "row", alignItems: "center",
+    height: 52,
+    marginTop: 56,
+    paddingHorizontal: 22,
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12,
+    zIndex: 20,
   },
+
   backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.07)",
-    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.12)",
-    alignItems: "center", justifyContent: "center",
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  backText: { color: "#fff", fontSize: 18 },
+
+  backText: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "900",
+  },
+
   modePill: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 999, borderWidth: 1,
-  },
-  modeEmoji: { fontSize: 15 },
-  modeLabel: { fontSize: 13, fontWeight: "800" },
-
-  phase: { flex: 1 },
-
-  setupScroll: { paddingHorizontal: 20, paddingBottom: 50 },
-  setupTitle: { color: "#fff", fontSize: 32, fontWeight: "900", marginBottom: 10 },
-  setupDesc: {
-    color: "rgba(255,255,255,0.45)", fontSize: 14,
-    lineHeight: 20, marginBottom: 16,
-  },
-  rulesRow: { gap: 8, marginBottom: 24 },
-  ruleChip: {
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderRadius: 12, padding: 12,
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
-  },
-  ruleChipText: { color: "rgba(255,255,255,0.6)", fontSize: 13 },
-  sectionLabel: {
-    fontSize: 11, fontWeight: "700", letterSpacing: 2,
-    color: "rgba(255,255,255,0.25)", marginBottom: 12,
-  },
-  inputRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
-  inputIcon: {
-    width: 36, height: 36, borderRadius: 12,
-    alignItems: "center", justifyContent: "center",
-  },
-  inputIconText: { fontWeight: "900", fontSize: 14 },
-  input: {
-    flex: 1, backgroundColor: "rgba(255,255,255,0.07)",
-    borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
-    color: "#fff", fontSize: 15, fontWeight: "600",
-    paddingHorizontal: 14, paddingVertical: 13,
-  },
-  removeBtn: {
-    width: 32, height: 32, borderRadius: 10,
-    backgroundColor: "rgba(255,255,255,0.07)",
-    alignItems: "center", justifyContent: "center",
-  },
-  removeBtnText: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
-  addBtn: {
-    paddingVertical: 14, alignItems: "center",
-    borderRadius: 14, borderWidth: 1,
+    height: 52,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    backgroundColor: "rgba(8,11,25,0.75)",
+    borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  modeEmoji: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+
+  modeLabel: {
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
+  phase: {
+    flex: 1,
+  },
+
+  scroll: {
+    paddingTop: 55,
+    paddingHorizontal: 22,
+    paddingBottom: 40,
+  },
+
+  hero: {
+    minHeight: 220,
+    justifyContent: "flex-end",
+    marginBottom: 28,
+    position: "relative",
+  },
+
+  eyebrow: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: 3,
     marginBottom: 16,
   },
-  addBtnText: { fontSize: 14, fontWeight: "800" },
-  startBtn: {
-    borderRadius: 18, paddingVertical: 18,
-    alignItems: "center", marginTop: 4,
+
+  heroTitle: {
+    color: "#fff",
+    fontSize: 46,
+    lineHeight: 50,
+    fontWeight: "900",
+    letterSpacing: -1.8,
   },
-  startBtnDisabled: { opacity: 0.4 },
-  startBtnText: { color: "#0B0B14", fontSize: 16, fontWeight: "900" },
+
+  heroSub: {
+    marginTop: 16,
+    maxWidth: width * 0.7,
+    color: "rgba(255,255,255,0.58)",
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "700",
+  },
+
+  heroEmojiWrap: {
+    position: "absolute",
+    right: -8,
+    bottom: 8,
+  },
+
+  heroEmoji: {
+    fontSize: 110,
+    opacity: 0.92,
+  },
+
+  infoCard: {
+    backgroundColor: "rgba(8,11,25,0.72)",
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    padding: 18,
+    marginBottom: 28,
+  },
+
+  infoTitle: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "900",
+    marginBottom: 14,
+  },
+
+  ruleRow: {
+    flexDirection: "row",
+    marginBottom: 10,
+  },
+
+  ruleEmoji: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+
+  ruleText: {
+    flex: 1,
+    color: "rgba(255,255,255,0.56)",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "700",
+  },
+
+  sectionLabel: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: 4,
+    marginBottom: 16,
+  },
+
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  inputIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  inputIconText: {
+    fontSize: 15,
+    fontWeight: "900",
+  },
+
+  input: {
+    flex: 1,
+    height: 56,
+    backgroundColor: "rgba(8,11,25,0.72)",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "800",
+    paddingHorizontal: 16,
+  },
+
+  removeBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 10,
+  },
+
+  removeBtnText: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 18,
+    fontWeight: "900",
+  },
+
+  addBtn: {
+    height: 54,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    backgroundColor: "rgba(8,11,25,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+
+  addBtnText: {
+    fontSize: 15,
+    fontWeight: "900",
+  },
+
+  startBtn: {
+    height: 58,
+    borderRadius: 20,
+    overflow: "hidden",
+  },
+
+  startGradient: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  startBtnText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: 1.2,
+  },
+
+  disabledBtn: {
+    opacity: 0.45,
+  },
 
   revealContent: {
-    flex: 1, paddingHorizontal: 20,
-    justifyContent: "center", alignItems: "center",
+    flex: 1,
+    paddingHorizontal: 22,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  revealSub: { color: "rgba(255,255,255,0.4)", fontSize: 15, marginBottom: 6 },
-  revealName: { color: "#fff", fontSize: 30, fontWeight: "900", marginBottom: 4 },
-  revealCounter: { fontSize: 13, fontWeight: "700", marginBottom: 28 },
+
+  revealSub: {
+    color: "rgba(255,255,255,0.48)",
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+
+  revealName: {
+    color: "#fff",
+    fontSize: 34,
+    fontWeight: "900",
+    marginBottom: 28,
+  },
+
   revealCard: {
-    width: width - 40, borderRadius: 28,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderWidth: 1, padding: 36,
-    alignItems: "center", minHeight: 200,
-    justifyContent: "center", marginBottom: 24,
+    width: width - 44,
+    minHeight: 230,
+    borderRadius: 30,
+    backgroundColor: "rgba(8,11,25,0.8)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    padding: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
   },
-  holdContent: { alignItems: "center" },
-  holdIcon: { fontSize: 36, marginBottom: 12 },
-  holdText: { color: "#fff", fontSize: 18, fontWeight: "800", marginBottom: 6 },
-  holdSub: { color: "rgba(255,255,255,0.3)", fontSize: 13 },
-  cardContent: { alignItems: "center" },
+
+  holdContent: {
+    alignItems: "center",
+  },
+
+  holdEmoji: {
+    fontSize: 42,
+    marginBottom: 14,
+  },
+
+  holdTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "900",
+    marginBottom: 8,
+  },
+
+  holdSub: {
+    color: "rgba(255,255,255,0.42)",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  cardContent: {
+    alignItems: "center",
+  },
+
   cardBadge: {
-    paddingHorizontal: 12, paddingVertical: 5,
-    borderRadius: 999, marginBottom: 16,
+    paddingHorizontal: 13,
+    paddingVertical: 6,
+    borderRadius: 999,
+    marginBottom: 18,
   },
-  cardBadgeText: { fontSize: 11, fontWeight: "800", letterSpacing: 1 },
-  cardWord: { color: "#fff", fontSize: 36, fontWeight: "900", marginBottom: 10 },
-  cardHint: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
+
+  cardBadgeText: {
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 1.2,
+  },
+
+  cardWord: {
+    color: "#fff",
+    fontSize: 42,
+    fontWeight: "900",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+
+  cardHint: {
+    color: "rgba(255,255,255,0.52)",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  imposterBadge: {
+    backgroundColor: "rgba(248,113,113,0.18)",
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+    marginBottom: 18,
+  },
+
+  imposterBadgeText: {
+    color: "#F87171",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 1.2,
+  },
+
+  imposterWord: {
+    color: "#F87171",
+    fontSize: 48,
+    fontWeight: "900",
+    marginBottom: 10,
+  },
+
   nextBtn: {
-    width: width - 40, borderRadius: 18,
-    paddingVertical: 17, alignItems: "center",
+    width: width - 44,
+    height: 58,
+    borderRadius: 20,
+    overflow: "hidden",
   },
-  nextBtnText: { color: "#0B0B14", fontSize: 16, fontWeight: "900" },
+
+  nextGradient: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  nextBtnText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: 1.2,
+  },
 
   doneContent: {
-    flex: 1, paddingHorizontal: 20,
-    justifyContent: "center", alignItems: "center",
+    flex: 1,
+    paddingHorizontal: 22,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  doneEmoji: { fontSize: 64, marginBottom: 16 },
-  doneTitle: { color: "#fff", fontSize: 36, fontWeight: "900", marginBottom: 10 },
+
+  doneEmoji: {
+    fontSize: 76,
+    marginBottom: 18,
+  },
+
+  doneTitle: {
+    color: "#fff",
+    fontSize: 38,
+    fontWeight: "900",
+    marginBottom: 12,
+  },
+
   doneSub: {
-    color: "rgba(255,255,255,0.4)", fontSize: 15,
-    textAlign: "center", lineHeight: 22, marginBottom: 28,
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: "center",
+    marginBottom: 30,
   },
-  doneRules: { gap: 10, width: "100%", marginBottom: 32 },
-  doneRule: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderRadius: 14, padding: 14, borderWidth: 1,
-  },
-  doneRuleEmoji: { fontSize: 18 },
-  doneRuleText: { color: "rgba(255,255,255,0.55)", fontSize: 13, flex: 1 },
+
   restartBtn: {
-    width: "100%", borderRadius: 18,
-    paddingVertical: 18, alignItems: "center", marginBottom: 12,
+    width: "100%",
+    height: 58,
+    borderRadius: 20,
+    overflow: "hidden",
+    marginBottom: 14,
   },
-  restartBtnText: { color: "#0B0B14", fontSize: 16, fontWeight: "900" },
-  homeBtn: { paddingVertical: 12 },
-  homeBtnText: { color: "rgba(255,255,255,0.25)", fontSize: 14 },
+
+  restartGradient: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  restartBtnText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: 1.2,
+  },
+
+  homeBtn: {
+    paddingVertical: 12,
+  },
+
+  homeBtnText: {
+    color: "rgba(255,255,255,0.42)",
+    fontSize: 14,
+    fontWeight: "800",
+  },
 });
