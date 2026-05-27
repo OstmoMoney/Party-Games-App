@@ -1,11 +1,18 @@
 import React, { useRef, useEffect, useState } from "react";
 import {
-  View, Text, TouchableOpacity, StyleSheet,
-  Dimensions, Animated, StatusBar, Alert,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  Animated,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 const { width, height } = Dimensions.get("window");
+
+const ROUND_SIZE = 25;
 
 const QUESTIONS = {
   chill: [
@@ -133,30 +140,6 @@ const QUESTIONS = {
     "Jeg har aldri sagt et annet navn under sex",
     "Jeg har aldri hatt sex med noen mer enn 10 år eldre eller yngre",
     "Jeg har aldri fantasert om en i dette rommet",
-    "Jeg har aldri onanert på et sted jeg ikke burde ",
-    "Jeg har aldri slikket en med mensen",
-    "Jeg har aldri kysset en med cum i kjeften",
-    "Jeg har aldri spilt søt og uskyldig",
-    "Jeg har aldri vært meg selv på date (100%)",
-    "Jeg har aldri stått for noe svært kontroveriselt",
-    "Jeg har aldri hatt sex med det samme kjønn",
-    "Jeg har aldri forsovet meg med vilje",
-    "Jeg har aldri kontaktet personen etter et ONS",
-    "Jeg har aldri hatt flere sex partnere på en og samme tid",
-    "Jeg har aldri manipulert under dating staget",
-    "Jeg har aldri prøvd å gi meg selv oralsex",
-    "Jeg har aldri vært på page 52 på pornhub",
-    "Jeg har aldri brukt mer enn 10 minutter på å finne en spesifik sex-video",
-    "Jeg har aldri prøvd MDMA",
-    "Jeg har aldri banket noen",
-    "Jeg har aldri gjort noe som kan gi straff inntil 3 år",
-    "Jeg har aldri fått fartsbot",
-    "Jeg har aldri ligget med en på utlandstur",
-    "Jeg har aldri reist mer enn 5 timer for å ligge",
-    "Jeg har aldri reist mer enn 1 time for å ligge",
-    "Jeg har aldri dratt til en tidligere fling, bare for å sove et sted",
-    "Jeg har aldri mixed en person med en annen på date",
-
   ],
   blasted: [
     "Jeg har aldri tatt bilder av noen uten at de visste det",
@@ -189,65 +172,53 @@ const QUESTIONS = {
     "Jeg har aldri gjort noe jeg ikke husker som skadet noen andre",
     "Jeg har aldri stjålet en kjæreste fra en bestevenn",
     "Jeg har aldri løyet til politiet",
-    "Jeg har aldri mobbet noen hardt som barn og aldri bedt om unnskyldning",
-    "Jeg har aldri truet noen",
-    "Jeg har aldri gjort noe seksuelt med noen som sov",
-    "Jeg har aldri vært med på noe jeg visste var galt men ble med uansett",
-    "Jeg har aldri hatt sex mot betaling og likt det",
-    "Jeg har aldri løyet i retten eller til politiet",
-    "Jeg har aldri gjort noe som jeg vet at ville sjokkere alle i dette rommet",
-    "Jeg har aldri hjulpet noen med å skjule noe ulovlig",
-    "Jeg har aldri filmet sex uten tillatelse",
-    "Jeg har aldri gjort noe som ingen i verden vet om",
-    "Jeg har aldri onanert til en person jeg bare har sett på gata",
-    "Jeg har aldri approachet en på åpen gate, edru",
-    "Jeg har aldri datet",
-    "Jeg har aldri smuglet",
-    "Jeg har aldri tryglet om sex",
-    "Jeg har aldri vært submissive",
-    "Jeg har aldri holdt en ekte pistol",
-    "Jeg har aldri lurt på om jeg dør idag",
-    "Jeg har aldri vært innlagt på sykehuset for noe alvorlig",
-    "Jeg har aldri sittet i glattcella",
-    "Jeg har aldri kjent noen som sitter i fengsel",
-    "Jeg har aldri gjort heavy drugs med en av motsatt kjønn",
-    "Jeg har aldri knulla så hardt at jeg blir øm",
-    "Jeg har aldri drukket 3 dager på rad",
-    "Jeg har aldri hatt sex med en random bare fordi sjansen var der",
-    "Jeg har aldri hatt sex med en kjendis",
-    "Jeg har aldri hatt trekant",
-    "Jeg har aldri hatt en så vill og erotisk fantasi som jeg fortsatt fantaserer om som ingen kan vite",
-    "Jeg har aldri gjort innbrudd",
-    "Jeg har aldri angret før det startet",
-    "Jeg har aldri prøvd med på en kollega",
-    "Jeg har aldri flørtet med polititet",
-    "Jeg har aldri flørtet med en butikkansatt",
-    "Jeg har aldri kjøpt sex",
-    "Jeg har aldri chaset så hardt at jeg mistet selvrespekten",
-    "Jeg har aldri blitt chaset så hardt at jeg ble redd",
-    "Jeg har aldri opprettet besøkelsesforbud mot en flørt",
-    "Jeg har aldri vært i en slåsskamp med 8+ personer",
-    "Jeg har aldri gjennomført mile-high club",
-    "Jeg har aldri solgt meg selv",
-    "Jeg har aldri scammet",
-    "Jeg har aldri vurdert å opprette onlyfans",
-    "Jeg har aldri sminket en gutt",
-    "Jeg har aldri dratt på dragqueen show",
-    "Jeg har aldri vært dominant til det ekstreme",
-    "Jeg har aldri forelsket meg i smilet til en",
-    "Jeg har aldri vært forelsket i ideen av kjæreste",
-    "Jeg har aldri valgt andre valget som partner",
-    "Jeg har aldri gått total-ghost-mode mot en",
-    "Jeg har aldri snoket på telefonen til partneren min",
-    "Jeg har aldri snoket i skuffen til en sex-partner",
   ],
 };
 
 const MODE_STYLE = {
-  chill:   { color: "#4ade80", bg: ["#0a1a0e", "#0f2a14"], label: "Chill", emoji: "😊" },
-  drunk:   { color: "#60a5fa", bg: ["#080f1a", "#0a1f3a"], label: "Drunk", emoji: "🍻" },
-  nasj:    { color: "#fb923c", bg: ["#1a0e08", "#2a1508"], label: "Nasj",  emoji: "🔥" },
-  blasted: { color: "#f87171", bg: ["#1a0808", "#2a0f0f"], label: "Blasted", emoji: "💀" },
+  chill: {
+    color: "#25D98A",
+    soft: "rgba(37,217,138,0.22)",
+    bg: ["#101A16", "#07100D", "#050711"],
+    label: "Chill",
+    emoji: "😊",
+  },
+  drunk: {
+    color: "#4F7BFF",
+    soft: "rgba(79,123,255,0.22)",
+    bg: ["#10162A", "#080B19", "#050711"],
+    label: "Drunk",
+    emoji: "🍻",
+  },
+  nasj: {
+    color: "#FB923C",
+    soft: "rgba(251,146,60,0.22)",
+    bg: ["#24160D", "#100A08", "#050711"],
+    label: "Nasj",
+    emoji: "🔥",
+  },
+  blasted: {
+    color: "#F87171",
+    soft: "rgba(248,113,113,0.22)",
+    bg: ["#241012", "#100709", "#050711"],
+    label: "Blasted",
+    emoji: "💀",
+  },
+};
+
+const shuffle = (arr) => {
+  const copy = [...arr];
+
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+
+  return copy;
+};
+
+const cleanQuestion = (question) => {
+  return question.replace(/^Jeg har aldri\s+/i, "");
 };
 
 export default function NeverHaveIEverScreen({ navigation, route }) {
@@ -255,296 +226,744 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
   const mode = route?.params?.mode || "chill";
   const style = MODE_STYLE[mode] || MODE_STYLE.chill;
 
-  const allQuestions = [...QUESTIONS[mode]].sort(() => Math.random() - 0.5);
+  const createDeck = () => {
+    const questions = QUESTIONS[mode] || QUESTIONS.chill;
+    return shuffle(questions).slice(0, ROUND_SIZE);
+  };
 
+  const [deck, setDeck] = useState(createDeck);
   const [index, setIndex] = useState(0);
   const [sips, setSips] = useState(0);
   const [done, setDone] = useState(false);
   const [choice, setChoice] = useState(null);
+  const [locked, setLocked] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const cardAnim = useRef(new Animated.Value(1)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(28)).current;
+  const cardOpacity = useRef(new Animated.Value(1)).current;
+  const cardSlide = useRef(new Animated.Value(0)).current;
+  const cardScale = useRef(new Animated.Value(1)).current;
+  const floatAnim = useRef(new Animated.Value(0)).current;
+  const progressAnim = useRef(new Animated.Value(1 / Math.max(deck.length, 1))).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 650,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 650,
+        useNativeDriver: true,
+      }),
     ]).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: 1,
+          duration: 1900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: 1900,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   useEffect(() => {
     Animated.timing(progressAnim, {
-      toValue: (index + 1) / allQuestions.length,
-      duration: 400,
+      toValue: (index + 1) / Math.max(deck.length, 1),
+      duration: 350,
       useNativeDriver: false,
     }).start();
-  }, [index]);
+  }, [index, deck.length]);
 
-  const animateCard = (callback) => {
-    Animated.sequence([
-      Animated.timing(cardAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+  const goNext = () => {
+    Animated.parallel([
+      Animated.timing(cardOpacity, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardSlide, {
+        toValue: -35,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.spring(cardScale, {
+        toValue: 0.985,
+        useNativeDriver: true,
+      }),
     ]).start(() => {
-      callback();
-      Animated.timing(cardAnim, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+      if (index + 1 >= deck.length) {
+        setDone(true);
+        setLocked(false);
+        return;
+      }
+
+      setIndex((prev) => prev + 1);
+      setChoice(null);
+
+      cardSlide.setValue(35);
+      cardScale.setValue(1);
+
+      Animated.parallel([
+        Animated.timing(cardOpacity, {
+          toValue: 1,
+          duration: 230,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardSlide, {
+          toValue: 0,
+          duration: 230,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setLocked(false);
+      });
     });
   };
 
   const handleChoice = (hasDone) => {
-    setChoice(hasDone);
-    if (hasDone) setSips((s) => s + 1);
+    if (locked) return;
 
-    setTimeout(() => {
-      animateCard(() => {
-        setChoice(null);
-        if (index + 1 >= allQuestions.length) {
-          setDone(true);
-        } else {
-          setIndex((i) => i + 1);
-        }
-      });
-    }, 600);
+    setLocked(true);
+    setChoice(hasDone);
+
+    if (hasDone) {
+      setSips((prev) => prev + 1);
+    }
+
+    setTimeout(goNext, 650);
+  };
+
+  const skipQuestion = () => {
+    if (locked) return;
+    setLocked(true);
+    setChoice(null);
+    goNext();
   };
 
   const restart = () => {
+    const newDeck = createDeck();
+
+    setDeck(newDeck);
     setIndex(0);
     setSips(0);
     setDone(false);
     setChoice(null);
+    setLocked(false);
+
+    cardOpacity.setValue(1);
+    cardSlide.setValue(0);
+    cardScale.setValue(1);
+    progressAnim.setValue(1 / Math.max(newDeck.length, 1));
   };
+
+  const floatY = floatAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -8],
+  });
 
   if (done) {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={style.bg} style={StyleSheet.absoluteFill} />
+        <StatusBar barStyle="light-content" />
+
+        <LinearGradient
+          colors={style.bg}
+          locations={[0, 0.48, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+
+        <View style={[styles.colorBlob, { backgroundColor: style.soft }]} />
+
+        <LinearGradient
+          colors={["rgba(5,7,17,0)", "#050711"]}
+          style={styles.darkFade}
+        />
+
         <View style={styles.doneWrap}>
-          <Text style={styles.doneEmoji}>🎉</Text>
-          <Text style={styles.doneTitle}>Ferdig!</Text>
+          <Animated.View
+            style={[
+              styles.doneIconWrap,
+              {
+                transform: [{ translateY: floatY }, { rotate: "-8deg" }],
+              },
+            ]}
+          >
+            <Text style={styles.doneEmoji}>🍻</Text>
+          </Animated.View>
+
+          <Text style={styles.doneTitle}>Runden er ferdig!</Text>
+
           <Text style={styles.doneSub}>
-            {playerName} tok <Text style={[styles.doneSips, { color: style.color }]}>{sips} slurker</Text> denne runden
+            {playerName} tok{" "}
+            <Text style={[styles.doneHighlight, { color: style.color }]}>
+              {sips} slurker
+            </Text>
+            {"\n"}denne runden
           </Text>
-          <TouchableOpacity style={[styles.doneBtn, { borderColor: style.color }]} onPress={restart}>
-            <Text style={[styles.doneBtnText, { color: style.color }]}>Spill igjen 🔄</Text>
+
+          <TouchableOpacity activeOpacity={0.9} style={styles.restartBtn} onPress={restart}>
+            <LinearGradient
+              colors={[style.color, "#B92BFF"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.restartGradient}
+            >
+              <Text style={styles.restartText}>SPILL IGJEN 🔄</Text>
+            </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.doneHome} onPress={() => navigation.popToTop()}>
-            <Text style={styles.doneHomeText}>Tilbake til hjem</Text>
+
+          <TouchableOpacity style={styles.homeBtn} onPress={() => navigation.popToTop()}>
+            <Text style={styles.homeText}>← Tilbake til hjem</Text>
           </TouchableOpacity>
         </View>
       </View>
     );
   }
 
-  const question = allQuestions[index];
+  const question = deck[index];
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={style.bg} style={StyleSheet.absoluteFill} />
 
-      <View style={[styles.glowTop, { backgroundColor: style.color }]} />
+      <LinearGradient
+        colors={style.bg}
+        locations={[0, 0.48, 1]}
+        style={StyleSheet.absoluteFill}
+      />
 
-      <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+      <View style={[styles.colorBlob, { backgroundColor: style.soft }]} />
 
-        {/* Top bar */}
+      <LinearGradient
+        colors={["rgba(5,7,17,0)", "#050711"]}
+        style={styles.darkFade}
+      />
+
+      <Animated.View
+        style={[
+          styles.inner,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
         <View style={styles.topBar}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
-          <View style={[styles.modePill, { backgroundColor: style.color + "22", borderColor: style.color + "55" }]}>
+
+          <View style={[styles.modePill, { borderColor: `${style.color}35` }]}>
             <Text style={styles.modeEmoji}>{style.emoji}</Text>
             <Text style={[styles.modeLabel, { color: style.color }]}>{style.label}</Text>
           </View>
-          <View style={styles.sipCount}>
+
+          <View style={styles.sipPill}>
             <Text style={styles.sipEmoji}>🍺</Text>
-            <Text style={[styles.sipNum, { color: style.color }]}>{sips}</Text>
+            <Text style={[styles.sipNumber, { color: style.color }]}>{sips}</Text>
           </View>
         </View>
 
-        {/* Progress */}
-        <View style={styles.progressWrap}>
-          <View style={styles.progressBg}>
-            <Animated.View
-              style={[
-                styles.progressFill,
-                {
-                  backgroundColor: style.color,
-                  width: progressAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ["0%", "100%"],
-                  }),
-                },
-              ]}
-            />
-          </View>
-          <Text style={styles.progressText}>{index + 1} / {allQuestions.length}</Text>
+        <View style={styles.progressBg}>
+          <Animated.View
+            style={[
+              styles.progressFill,
+              {
+                backgroundColor: style.color,
+                width: progressAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ["0%", "100%"],
+                }),
+              },
+            ]}
+          />
         </View>
 
-        {/* Card */}
+        <View style={styles.hero}>
+          <Text style={styles.eyebrow}>NEVER HAVE I EVER</Text>
+
+          <Text style={styles.heroTitle}>
+            Drink if{"\n"}you have
+          </Text>
+
+          <Text style={styles.heroSub}>
+            Svar ærlig. Har du gjort det, tar du en slurk.
+          </Text>
+
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.heroIconWrap,
+              {
+                transform: [{ translateY: floatY }, { rotate: "-8deg" }],
+              },
+            ]}
+          >
+            <Text style={styles.heroIcon}>🍻</Text>
+          </Animated.View>
+        </View>
+
         <View style={styles.cardArea}>
-          <Animated.View style={[styles.card, { opacity: cardAnim, transform: [{ scale: cardAnim }] }]}>
-            <View style={[styles.cardAccent, { backgroundColor: style.color }]} />
-            <Text style={styles.cardLabel}>Jeg har aldri...</Text>
-            <Text style={styles.cardQuestion}>
-              {question.replace("Jeg har aldri ", "")}
+          <View style={[styles.cardBackLayer, { borderColor: `${style.color}18` }]} />
+
+          <Animated.View
+            style={[
+              styles.card,
+              {
+                opacity: cardOpacity,
+                transform: [{ translateY: cardSlide }, { scale: cardScale }],
+                borderColor: `${style.color}30`,
+              },
+            ]}
+          >
+            <View style={[styles.cardTopLine, { backgroundColor: style.color }]} />
+
+            <Text style={[styles.cardLabel, { color: style.color }]}>
+              JEG HAR ALDRI...
             </Text>
 
+            <Text style={styles.questionText}>{cleanQuestion(question)}</Text>
+
             {choice !== null && (
-              <View style={[
-                styles.choiceIndicator,
-                { backgroundColor: choice ? style.color + "22" : "rgba(255,255,255,0.05)" }
-              ]}>
-                <Text style={styles.choiceIndicatorText}>
-                  {choice ? `+1 slurk 🍺` : "Skippa! 👏"}
+              <View
+                style={[
+                  styles.choiceBadge,
+                  {
+                    backgroundColor: choice
+                      ? `${style.color}22`
+                      : "rgba(255,255,255,0.06)",
+                  },
+                ]}
+              >
+                <Text style={styles.choiceBadgeText}>
+                  {choice ? "+1 slurk 🍺" : "Aldri gjort ✋"}
                 </Text>
               </View>
             )}
           </Animated.View>
         </View>
 
-        {/* Buttons */}
-        <View style={styles.btnRow}>
+        <View style={styles.buttonRow}>
           <TouchableOpacity
-            style={[styles.btn, styles.btnNo]}
+            activeOpacity={0.88}
+            disabled={locked}
+            style={styles.noBtn}
             onPress={() => handleChoice(false)}
-            activeOpacity={0.85}
-            disabled={choice !== null}
           >
-            <Text style={styles.btnNoIcon}>✋</Text>
-            <Text style={styles.btnNoText}>Aldri gjort</Text>
-            <Text style={styles.btnNoSub}>Ingen slurk</Text>
+            <Text style={styles.buttonEmoji}>✋</Text>
+            <Text style={styles.noBtnText}>ALDRI</Text>
+            <Text style={styles.buttonSub}>Ingen slurk</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.btn, styles.btnYes, { backgroundColor: style.color + "22", borderColor: style.color + "55" }]}
+            activeOpacity={0.9}
+            disabled={locked}
+            style={styles.yesBtn}
             onPress={() => handleChoice(true)}
-            activeOpacity={0.85}
-            disabled={choice !== null}
           >
-            <Text style={styles.btnYesIcon}>🍺</Text>
-            <Text style={[styles.btnYesText, { color: style.color }]}>Har gjort det</Text>
-            <Text style={styles.btnYesSub}>Ta en slurk!</Text>
+            <LinearGradient
+              colors={[style.color, "#B92BFF"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.yesGradient}
+            >
+              <Text style={styles.buttonEmoji}>🍺</Text>
+              <Text style={styles.yesBtnText}>HAR GJORT</Text>
+              <Text style={styles.yesBtnSub}>Ta en slurk</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
-        {/* Skip */}
-        <TouchableOpacity
-          style={styles.skipBtn}
-          onPress={() => animateCard(() => {
-            setChoice(null);
-            if (index + 1 >= allQuestions.length) setDone(true);
-            else setIndex((i) => i + 1);
-          })}
-          disabled={choice !== null}
-        >
+        <TouchableOpacity disabled={locked} onPress={skipQuestion} style={styles.skipBtn}>
           <Text style={styles.skipText}>Hopp over →</Text>
         </TouchableOpacity>
-
       </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  inner: { flex: 1, paddingHorizontal: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: "#050711",
+  },
 
-  glowTop: {
-    position: "absolute", top: -100, left: width / 2 - 130,
-    width: 260, height: 260, borderRadius: 130, opacity: 0.1,
+  colorBlob: {
+    position: "absolute",
+    top: -150,
+    right: -180,
+    width: width * 1.22,
+    height: width * 1.22,
+    borderRadius: width,
+  },
+
+  darkFade: {
+    position: "absolute",
+    top: height * 0.36,
+    left: 0,
+    right: 0,
+    height: height * 0.5,
+  },
+
+  inner: {
+    flex: 1,
+    paddingHorizontal: 22,
+    paddingTop: 56,
+    paddingBottom: 34,
   },
 
   topBar: {
-    flexDirection: "row", alignItems: "center",
+    height: 52,
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 56, marginBottom: 20,
+    marginBottom: 16,
   },
+
   backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.07)",
-    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.12)",
-    alignItems: "center", justifyContent: "center",
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(255,255,255,0.09)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.13)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  backText: { color: "#fff", fontSize: 18 },
+
+  backText: {
+    color: "#fff",
+    fontSize: 26,
+    fontWeight: "900",
+    marginTop: -2,
+  },
+
   modePill: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 999, borderWidth: 1,
+    height: 52,
+    paddingHorizontal: 18,
+    borderRadius: 30,
+    backgroundColor: "rgba(6, 8, 20, 0.82)",
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  modeEmoji: { fontSize: 16 },
-  modeLabel: { fontSize: 13, fontWeight: "800" },
-  sipCount: {
-    flexDirection: "row", alignItems: "center", gap: 5,
-    backgroundColor: "rgba(255,255,255,0.07)",
-    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.12)",
-    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
-  },
-  sipEmoji: { fontSize: 14 },
-  sipNum: { fontSize: 15, fontWeight: "900" },
 
-  progressWrap: {
-    flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 28,
+  modeEmoji: {
+    fontSize: 18,
+    marginRight: 8,
   },
+
+  modeLabel: {
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
+  sipPill: {
+    height: 52,
+    minWidth: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(6, 8, 20, 0.82)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    flexDirection: "row",
+  },
+
+  sipEmoji: {
+    fontSize: 15,
+    marginRight: 5,
+  },
+
+  sipNumber: {
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
   progressBg: {
-    flex: 1, height: 4, backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 2, overflow: "hidden",
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+    marginBottom: 34,
   },
-  progressFill: { height: "100%", borderRadius: 2 },
-  progressText: { color: "rgba(255,255,255,0.3)", fontSize: 12, fontWeight: "700" },
 
-  cardArea: { flex: 1, justifyContent: "center" },
+  progressFill: {
+    height: "100%",
+    borderRadius: 999,
+  },
+
+  hero: {
+    minHeight: 220,
+    justifyContent: "flex-end",
+    position: "relative",
+    marginBottom: 24,
+  },
+
+  eyebrow: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: 3.2,
+    marginBottom: 18,
+  },
+
+  heroTitle: {
+    color: "#fff",
+    fontSize: 48,
+    lineHeight: 53,
+    fontWeight: "900",
+    letterSpacing: -1.8,
+  },
+
+  heroSub: {
+    marginTop: 18,
+    maxWidth: width * 0.67,
+    color: "rgba(255,255,255,0.62)",
+    fontSize: 15,
+    lineHeight: 21,
+    fontWeight: "800",
+  },
+
+  heroIconWrap: {
+    position: "absolute",
+    right: -12,
+    bottom: 4,
+  },
+
+  heroIcon: {
+    fontSize: 116,
+    opacity: 0.92,
+  },
+
+  cardArea: {
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 250,
+  },
+
+  cardBackLayer: {
+    position: "absolute",
+    left: 12,
+    right: 12,
+    top: 22,
+    bottom: 4,
+    borderRadius: 32,
+    backgroundColor: "rgba(8,11,25,0.42)",
+    borderWidth: 1,
+    transform: [{ rotate: "-2deg" }],
+  },
+
   card: {
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: 28, padding: 32,
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
+    minHeight: 260,
+    borderRadius: 32,
+    backgroundColor: "rgba(8,11,25,0.82)",
+    borderWidth: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+    overflow: "hidden",
+    justifyContent: "center",
+  },
+
+  cardTopLine: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+  },
+
+  cardLabel: {
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 2.4,
+    marginBottom: 22,
+    textAlign: "center",
+  },
+
+  questionText: {
+    color: "#fff",
+    fontSize: 31,
+    lineHeight: 39,
+    fontWeight: "900",
+    letterSpacing: -0.9,
+    textAlign: "center",
+  },
+
+  choiceBadge: {
+    marginTop: 22,
+    alignSelf: "center",
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+
+  choiceBadgeText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  buttonRow: {
+    flexDirection: "row",
+    gap: 14,
+    marginTop: 22,
+  },
+
+  noBtn: {
+    flex: 1,
+    height: 92,
+    borderRadius: 24,
+    backgroundColor: "rgba(8,11,25,0.82)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  yesBtn: {
+    flex: 1,
+    height: 92,
+    borderRadius: 24,
     overflow: "hidden",
   },
-  cardAccent: {
-    position: "absolute", top: 0, left: 0, right: 0, height: 3,
-  },
-  cardLabel: {
-    color: "rgba(255,255,255,0.35)", fontSize: 14,
-    fontWeight: "700", marginBottom: 16, letterSpacing: 0.5,
-  },
-  cardQuestion: {
-    color: "#fff", fontSize: 26, fontWeight: "900",
-    lineHeight: 34,
-  },
-  choiceIndicator: {
-    marginTop: 20, borderRadius: 12, padding: 12, alignItems: "center",
-  },
-  choiceIndicatorText: { color: "#fff", fontWeight: "800", fontSize: 15 },
 
-  btnRow: { flexDirection: "row", gap: 12, marginBottom: 16 },
-  btn: {
-    flex: 1, borderRadius: 20, padding: 18,
-    alignItems: "center", borderWidth: 1,
+  yesGradient: {
+    flex: 1,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  btnNo: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+
+  buttonEmoji: {
+    fontSize: 25,
+    marginBottom: 5,
+  },
+
+  noBtnText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+
+  yesBtnText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+
+  buttonSub: {
+    color: "rgba(255,255,255,0.38)",
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 3,
+  },
+
+  yesBtnSub: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 3,
+  },
+
+  skipBtn: {
+    alignItems: "center",
+    paddingTop: 18,
+    paddingBottom: 4,
+  },
+
+  skipText: {
+    color: "rgba(255,255,255,0.38)",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  doneWrap: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  doneIconWrap: {
+    width: 120,
+    height: 120,
+    borderRadius: 36,
+    backgroundColor: "rgba(8,11,25,0.82)",
+    borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
   },
-  btnNoIcon: { fontSize: 26, marginBottom: 6 },
-  btnNoText: { color: "#fff", fontWeight: "900", fontSize: 14 },
-  btnNoSub: { color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 3 },
-  btnYes: {},
-  btnYesIcon: { fontSize: 26, marginBottom: 6 },
-  btnYesText: { fontWeight: "900", fontSize: 14 },
-  btnYesSub: { color: "rgba(255,255,255,0.4)", fontSize: 11, marginTop: 3 },
 
-  skipBtn: { alignItems: "center", paddingBottom: 40, paddingTop: 4 },
-  skipText: { color: "rgba(255,255,255,0.2)", fontSize: 13, fontWeight: "700" },
-
-  doneWrap: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
-  doneEmoji: { fontSize: 64, marginBottom: 16 },
-  doneTitle: { color: "#fff", fontSize: 40, fontWeight: "900", marginBottom: 8 },
-  doneSub: { color: "rgba(255,255,255,0.5)", fontSize: 16, textAlign: "center", lineHeight: 24, marginBottom: 40 },
-  doneSips: { fontWeight: "900" },
-  doneBtn: {
-    width: "100%", borderRadius: 20, borderWidth: 1.5,
-    paddingVertical: 18, alignItems: "center", marginBottom: 14,
+  doneEmoji: {
+    fontSize: 70,
   },
-  doneBtnText: { fontSize: 16, fontWeight: "900" },
-  doneHome: { paddingVertical: 12 },
-  doneHomeText: { color: "rgba(255,255,255,0.25)", fontSize: 14 },
+
+  doneTitle: {
+    color: "#fff",
+    fontSize: 40,
+    fontWeight: "900",
+    letterSpacing: -1.5,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+
+  doneSub: {
+    textAlign: "center",
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 16,
+    lineHeight: 24,
+    marginBottom: 32,
+  },
+
+  doneHighlight: {
+    fontWeight: "900",
+  },
+
+  restartBtn: {
+    width: "100%",
+    height: 60,
+    borderRadius: 22,
+    overflow: "hidden",
+    marginBottom: 14,
+  },
+
+  restartGradient: {
+    flex: 1,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  restartText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: 1.2,
+  },
+
+  homeBtn: {
+    paddingVertical: 12,
+  },
+
+  homeText: {
+    color: "rgba(255,255,255,0.42)",
+    fontSize: 14,
+    fontWeight: "800",
+  },
 });
