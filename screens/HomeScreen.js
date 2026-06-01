@@ -59,7 +59,7 @@ const GAMES = [
     meta: t("Max 7 players", "Max 7 players", "最大7人"),
     colors: ["rgba(75, 50, 16, 0.9)", "rgba(19, 13, 12, 0.98)"],
     accent: "#E6C46A",
-    locked: true,
+    locked: false,
   },
 ];
 

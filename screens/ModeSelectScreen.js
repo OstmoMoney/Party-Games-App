@@ -42,7 +42,7 @@ const MODES = [
     ),
     colors: ["rgba(93, 28, 74, 0.92)", "rgba(22, 8, 24, 0.98)"],
     accent: "#EC4899",
-    locked: true,
+    locked: false,
   },
   {
     key: "drunk",
