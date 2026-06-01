@@ -2,6 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { View, Text, Animated, Dimensions, Image } from "react-native";
 import { useEffect, useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import IntroScreen from "./screens/IntroScreen";
 import HomeScreen from "./screens/HomeScreen";
 import ModeSelectScreen from "./screens/ModeSelectScreen";
@@ -57,12 +58,36 @@ function SplashScreen({ onDone }) {
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [initialRoute, setInitialRoute] = useState(null);
+  const [initialParams, setInitialParams] = useState({});
+
+  useEffect(() => {
+    AsyncStorage.getItem("playerName").then((savedName) => {
+      if (savedName && savedName.length >= 2) {
+        setInitialRoute("Home");
+        setInitialParams({ playerName: savedName });
+      } else {
+        setInitialRoute("Intro");
+      }
+    });
+  }, []);
+
+  if (!initialRoute) return null;
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false, animation: "fade" }}>
-        <Stack.Screen name="Intro" component={IntroScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen
+          name="Intro"
+          component={IntroScreen}
+          options={{ gestureEnabled: false }}
+        />
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          initialParams={initialRoute === "Home" ? initialParams : {}}
+          options={{ gestureEnabled: false }}
+        />
         <Stack.Screen name="ModeSelect" component={ModeSelectScreen} />
         <Stack.Screen name="NeverHaveIEver" component={NeverHaveIEverScreen} />
         <Stack.Screen name="Imposter" component={ImposterScreen} />
@@ -71,7 +96,6 @@ export default function App() {
         <Stack.Screen name="SpinTheBottle" component={SpinTheBottleScreen} />
         <Stack.Screen name="ComingSoon" component={ComingSoonScreen} />
       </Stack.Navigator>
-
       {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
     </NavigationContainer>
   );

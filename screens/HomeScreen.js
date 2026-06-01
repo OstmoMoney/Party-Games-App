@@ -61,6 +61,16 @@ const GAMES = [
     accent: "#E6C46A",
     locked: false,
   },
+  {
+    key: "Quiz",
+    icon: "🧠",
+    name: t("Quiz", "Quiz", "クイズ"),
+    desc: t("Coming soon", "Coming soon", "近日公開"),
+    meta: t("2-20 players", "2-20 players", "2-20人"),
+    colors: ["rgba(20, 60, 80, 0.9)", "rgba(8, 18, 28, 0.98)"],
+    accent: "#38BDF8",
+    comingSoon: true,
+  },
 ];
 
 const RULES_NO = [
@@ -88,12 +98,11 @@ const RULES_JA = [
 ];
 
 export default function HomeScreen({ navigation, route }) {
-  const playerName = route?.params?.playerName || "Trym";
+  const playerName = route?.params?.playerName || "Player";
   const initials = playerName.slice(0, 1).toUpperCase();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const beerAnim = useRef(new Animated.Value(0)).current;
-
   const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
@@ -119,8 +128,15 @@ export default function HomeScreen({ navigation, route }) {
     ).start();
   }, []);
 
-  const goToGame = (game) => {
-    if (game.locked) {
+ const goToGame = (game) => {
+  if (game.comingSoon) {
+    Alert.alert(
+      t("🧠 Quiz", "🧠 Quiz", "🧠 クイズ"),
+      t("Quiz kommer snart!", "Quiz coming soon!", "クイズは近日公開！")
+    );
+    return;
+  }
+  if (game.locked) {
       Alert.alert(
         t("👑 Party Pass", "👑 Party Pass", "👑 パーティーパス"),
         t(
@@ -131,11 +147,7 @@ export default function HomeScreen({ navigation, route }) {
       );
       return;
     }
-
-    navigation.navigate("ModeSelect", {
-      playerName,
-      game: game.key,
-    });
+    navigation.navigate("ModeSelect", { playerName, game: game.key });
   };
 
   const handleBuyPro = () => {
@@ -187,17 +199,18 @@ export default function HomeScreen({ navigation, route }) {
             <Text style={styles.rulesIcon}>📖</Text>
           </TouchableOpacity>
 
-          <View style={styles.profilePill}>
+          <TouchableOpacity
+            style={styles.profilePill}
+            onPress={() => navigation.navigate("Intro")}
+            activeOpacity={0.85}
+          >
             <LinearGradient colors={["#FF6A54", "#EC2C83", "#7A4DFF"]} style={styles.profileRing}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>{initials}</Text>
               </View>
             </LinearGradient>
-
             <Text style={styles.profileName}>{playerName}</Text>
-            <Text style={styles.crown}>👑</Text>
-            <Text style={styles.points}>274</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.hero}>
@@ -213,12 +226,7 @@ export default function HomeScreen({ navigation, route }) {
 
             <Animated.View
               pointerEvents="none"
-              style={[
-                styles.beerWrap,
-                {
-                  transform: [{ translateY: beerY }, { rotate: "-8deg" }],
-                },
-              ]}
+              style={[styles.beerWrap, { transform: [{ translateY: beerY }, { rotate: "-8deg" }] }]}
             >
               <Text style={styles.beerEmoji}>🍻</Text>
             </Animated.View>
@@ -257,11 +265,7 @@ export default function HomeScreen({ navigation, route }) {
                 end={{ x: 1, y: 0 }}
                 style={[
                   styles.gameGradient,
-                  {
-                    borderColor: game.locked
-                      ? "rgba(230,196,106,0.18)"
-                      : "rgba(255,255,255,0.08)",
-                  },
+                  { borderColor: game.locked ? "rgba(230,196,106,0.18)" : "rgba(255,255,255,0.08)" },
                 ]}
               >
                 <View style={[styles.gameIconBox, { backgroundColor: game.accent }]}>
@@ -271,14 +275,17 @@ export default function HomeScreen({ navigation, route }) {
                 <View style={styles.gameText}>
                   <View style={styles.nameRow}>
                     <Text style={styles.gameName}>{game.name}</Text>
-
                     {game.locked && (
                       <View style={styles.proBadge}>
                         <Text style={styles.proBadgeText}>PRO</Text>
                       </View>
                     )}
+                    {game.comingSoon && (
+  <View style={styles.soonBadge}>
+    <Text style={styles.soonBadgeText}>SOON</Text>
+  </View>
+)}
                   </View>
-
                   <Text style={[styles.gameDesc, { color: game.accent }]}>{game.desc}</Text>
                   <Text style={styles.gameMeta}>{game.meta}</Text>
                 </View>
@@ -309,7 +316,6 @@ export default function HomeScreen({ navigation, route }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>📖 {t("Spilleregler", "Rules", "ルール")}</Text>
-
             <ScrollView showsVerticalScrollIndicator={false}>
               {rules.map((r, i) => (
                 <View key={r.title}>
@@ -317,17 +323,11 @@ export default function HomeScreen({ navigation, route }) {
                     <Text style={styles.ruleTitle}>{r.title}</Text>
                     <Text style={styles.ruleText}>{r.text}</Text>
                   </View>
-
                   {i < rules.length - 1 && <View style={styles.ruleDivider} />}
                 </View>
               ))}
             </ScrollView>
-
-            <TouchableOpacity
-              onPress={() => setShowRules(false)}
-              activeOpacity={0.85}
-              style={styles.closeButton}
-            >
+            <TouchableOpacity onPress={() => setShowRules(false)} activeOpacity={0.85} style={styles.closeButton}>
               <LinearGradient
                 colors={["#FF4D6D", "#B000FF"]}
                 start={{ x: 0, y: 0 }}
@@ -345,410 +345,182 @@ export default function HomeScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#050711",
-  },
+  container: { flex: 1, backgroundColor: "#050711" },
 
-  redBlob: {
-    position: "absolute",
-    top: -130,
-    left: -170,
-    width: width * 1.15,
-    height: width * 1.15,
-    borderRadius: width,
-    backgroundColor: "rgba(255, 69, 105, 0.42)",
-    shadowColor: "#FF4569",
-    shadowOpacity: 1,
-    shadowRadius: 90,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 20,
-  },
-
-  purpleBlob: {
-    position: "absolute",
-    top: 170,
-    right: -190,
-    width: width * 1.2,
-    height: width * 1.2,
-    borderRadius: width,
-    backgroundColor: "rgba(126, 45, 255, 0.34)",
-    shadowColor: "#7E2DFF",
-    shadowOpacity: 1,
-    shadowRadius: 100,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 20,
-  },
-
-  darkFade: {
-    position: "absolute",
-    top: height * 0.38,
-    left: 0,
-    right: 0,
-    height: height * 0.42,
-  },
-
-  scroll: {
-    paddingTop: 56,
-    paddingHorizontal: 22,
-    paddingBottom: 120,
-  },
-
-  topBar: {
-    height: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 84,
-  },
-
-  rulesButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.09)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.13)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  rulesIcon: {
-    fontSize: 22,
-  },
-
-  profilePill: {
-    height: 52,
-    minWidth: 154,
-    paddingLeft: 5,
-    paddingRight: 16,
-    borderRadius: 30,
-    backgroundColor: "rgba(6, 8, 20, 0.88)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  profileRing: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-
-  avatar: {
-    width: 33,
-    height: 33,
-    borderRadius: 17,
-    backgroundColor: "#111321",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  avatarText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "900",
-  },
-
-  profileName: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "900",
-    marginRight: 7,
-  },
-
-  crown: {
-    fontSize: 14,
-    marginRight: 5,
-  },
-
-  points: {
-    color: "rgba(255,255,255,0.86)",
-    fontSize: 14,
-    fontWeight: "900",
-  },
-
-  hero: {
-    marginBottom: 42,
-  },
-
-  heyText: {
-    color: "rgba(255,255,255,0.72)",
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 3.2,
-    marginBottom: 22,
-  },
-
-  dot: {
-    color: "#E6B94A",
-  },
-
-  heroMain: {
-    height: 205,
-    position: "relative",
-  },
-
-  heroTextWrap: {
-    zIndex: 3,
-  },
-
-  heroTitle: {
-    color: "#fff",
-    fontSize: 43,
-    lineHeight: 49,
-    fontWeight: "900",
-    letterSpacing: -1.6,
-  },
-
-  heroSub: {
-    marginTop: 18,
-    color: "rgba(255,255,255,0.63)",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-
-  beerWrap: {
-    position: "absolute",
-    right: -10,
-    bottom: -4,
-    zIndex: 2,
-  },
-
-  beerEmoji: {
-    fontSize: 128,
-    opacity: 0.92,
-  },
-
-  heroButton: {
-    width: width * 0.56,
-    height: 58,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-
-  heroButtonGradient: {
-    flex: 1,
-    borderRadius: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-
-  heroButtonText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "900",
-    letterSpacing: 1.1,
-  },
-
-  heroArrow: {
-    color: "#fff",
-    fontSize: 29,
-    fontWeight: "900",
-    marginTop: -2,
-  },
-
-  sectionLabel: {
-    color: "rgba(255,255,255,0.48)",
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 4,
-    marginBottom: 18,
-  },
-
-  gamesList: {
-    gap: 16,
-  },
-
-  gameCard: {
-    height: 88,
-    borderRadius: 24,
-    overflow: "hidden",
-  },
-
-  gameGradient: {
-    flex: 1,
-    borderRadius: 24,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-  },
-
-  gameIconBox: {
-    width: 58,
-    height: 58,
-    borderRadius: 17,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 16,
-  },
-
-  gameIcon: {
-    fontSize: 27,
-  },
-
-  gameText: {
-    flex: 1,
-  },
-
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  gameName: {
-    color: "#fff",
-    fontSize: 17,
-    fontWeight: "900",
-    letterSpacing: -0.3,
-  },
-
-  gameDesc: {
-    fontSize: 12.5,
-    fontWeight: "900",
-    marginTop: 3,
-  },
-
-  gameMeta: {
-    color: "rgba(255,255,255,0.48)",
-    fontSize: 11.5,
-    fontWeight: "800",
-    marginTop: 2,
-  },
-
-  arrowCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 10,
-  },
-
-  cardArrow: {
-    fontSize: 28,
-    fontWeight: "900",
-    marginTop: -2,
-  },
-
-  proBadge: {
+  soonBadge: {
     marginLeft: 8,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
-    backgroundColor: "rgba(230,196,106,0.26)",
+    backgroundColor: "rgba(56,189,248,0.22)",
   },
-
-  proBadgeText: {
-    color: "#E6C46A",
+  soonBadgeText: {
+    color: "#38BDF8",
     fontSize: 9,
     fontWeight: "900",
     letterSpacing: 1,
   },
 
+  redBlob: {
+    position: "absolute", top: -130, left: -170,
+    width: width * 1.15, height: width * 1.15, borderRadius: width,
+    backgroundColor: "rgba(255, 69, 105, 0.42)",
+    shadowColor: "#FF4569", shadowOpacity: 1, shadowRadius: 90,
+    shadowOffset: { width: 0, height: 0 }, elevation: 20,
+  },
+
+  purpleBlob: {
+    position: "absolute", top: 170, right: -190,
+    width: width * 1.2, height: width * 1.2, borderRadius: width,
+    backgroundColor: "rgba(126, 45, 255, 0.34)",
+    shadowColor: "#7E2DFF", shadowOpacity: 1, shadowRadius: 100,
+    shadowOffset: { width: 0, height: 0 }, elevation: 20,
+  },
+
+  darkFade: {
+    position: "absolute", top: height * 0.38, left: 0, right: 0, height: height * 0.42,
+  },
+
+  scroll: { paddingTop: 56, paddingHorizontal: 22, paddingBottom: 120 },
+
+  topBar: {
+    height: 48, flexDirection: "row", alignItems: "center",
+    justifyContent: "space-between", marginBottom: 84,
+  },
+
+  rulesButton: {
+    width: 52, height: 52, borderRadius: 26,
+    backgroundColor: "rgba(255,255,255,0.09)", borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.13)", alignItems: "center", justifyContent: "center",
+  },
+
+  rulesIcon: { fontSize: 22 },
+
+  profilePill: {
+    height: 52, paddingLeft: 5, paddingRight: 16, borderRadius: 30,
+    backgroundColor: "rgba(6, 8, 20, 0.88)", borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)", flexDirection: "row", alignItems: "center",
+  },
+
+  profileRing: {
+    width: 42, height: 42, borderRadius: 21,
+    alignItems: "center", justifyContent: "center", marginRight: 12,
+  },
+
+  avatar: {
+    width: 33, height: 33, borderRadius: 17,
+    backgroundColor: "#111321", alignItems: "center", justifyContent: "center",
+  },
+
+  avatarText: { color: "#fff", fontSize: 15, fontWeight: "900" },
+
+  profileName: { color: "#fff", fontSize: 15, fontWeight: "900" },
+
+  hero: { marginBottom: 42 },
+
+  heyText: {
+    color: "rgba(255,255,255,0.72)", fontSize: 13, fontWeight: "900",
+    letterSpacing: 3.2, marginBottom: 22,
+  },
+
+  dot: { color: "#E6B94A" },
+
+  heroMain: { height: 205, position: "relative" },
+
+  heroTextWrap: { zIndex: 3 },
+
+  heroTitle: { color: "#fff", fontSize: 43, lineHeight: 49, fontWeight: "900", letterSpacing: -1.6 },
+
+  heroSub: { marginTop: 18, color: "rgba(255,255,255,0.63)", fontSize: 15, fontWeight: "800" },
+
+  beerWrap: { position: "absolute", right: -10, bottom: -4, zIndex: 2 },
+
+  beerEmoji: { fontSize: 128, opacity: 0.92 },
+
+  heroButton: { width: width * 0.56, height: 58, borderRadius: 20, overflow: "hidden" },
+
+  heroButtonGradient: {
+    flex: 1, borderRadius: 20, flexDirection: "row",
+    alignItems: "center", justifyContent: "center", gap: 12,
+  },
+
+  heroButtonText: { color: "#fff", fontSize: 15, fontWeight: "900", letterSpacing: 1.1 },
+
+  heroArrow: { color: "#fff", fontSize: 29, fontWeight: "900", marginTop: -2 },
+
+  sectionLabel: {
+    color: "rgba(255,255,255,0.48)", fontSize: 13, fontWeight: "900",
+    letterSpacing: 4, marginBottom: 18,
+  },
+
+  gamesList: { gap: 16 },
+
+  gameCard: { height: 88, borderRadius: 24, overflow: "hidden" },
+
+  gameGradient: {
+    flex: 1, borderRadius: 24, paddingHorizontal: 14,
+    flexDirection: "row", alignItems: "center", borderWidth: 1,
+  },
+
+  gameIconBox: { width: 58, height: 58, borderRadius: 17, alignItems: "center", justifyContent: "center", marginRight: 16 },
+
+  gameIcon: { fontSize: 27 },
+
+  gameText: { flex: 1 },
+
+  nameRow: { flexDirection: "row", alignItems: "center" },
+
+  gameName: { color: "#fff", fontSize: 17, fontWeight: "900", letterSpacing: -0.3 },
+
+  gameDesc: { fontSize: 12.5, fontWeight: "900", marginTop: 3 },
+
+  gameMeta: { color: "rgba(255,255,255,0.48)", fontSize: 11.5, fontWeight: "800", marginTop: 2 },
+
+  arrowCircle: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", marginLeft: 10 },
+
+  cardArrow: { fontSize: 28, fontWeight: "900", marginTop: -2 },
+
+  proBadge: { marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: "rgba(230,196,106,0.26)" },
+
+  proBadgeText: { color: "#E6C46A", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+
   buyProFloating: {
-    position: "absolute",
-    left: 22,
-    right: 22,
-    bottom: 24,
-    height: 58,
-    borderRadius: 29,
-    overflow: "hidden",
-    zIndex: 50,
-    shadowColor: "#E6C46A",
-    shadowOpacity: 0.35,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 12,
+    position: "absolute", left: 22, right: 22, bottom: 24, height: 58,
+    borderRadius: 29, overflow: "hidden", zIndex: 50,
+    shadowColor: "#E6C46A", shadowOpacity: 0.35, shadowRadius: 18,
+    shadowOffset: { width: 8, height: 8 }, elevation: 12,
   },
 
   buyProGradient: {
-    flex: 1,
-    borderRadius: 29,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.25)",
+    flex: 1, borderRadius: 29, alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.25)",
   },
 
-  buyProText: {
-    color: "#171006",
-    fontSize: 15,
-    fontWeight: "900",
-    letterSpacing: 1.3,
-  },
+  buyProText: { color: "#171006", fontSize: 15, fontWeight: "900", letterSpacing: 1.3 },
 
   modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.82)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 18,
+    flex: 1, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center",
+    alignItems: "center", paddingHorizontal: 18,
   },
 
   modalCard: {
-    width: "100%",
-    maxHeight: "82%",
-    backgroundColor: "#12121F",
-    borderRadius: 28,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    width: "100%", maxHeight: "82%", backgroundColor: "#12121F",
+    borderRadius: 28, padding: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
   },
 
-  modalTitle: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "900",
-    textAlign: "center",
-    marginBottom: 18,
-  },
+  modalTitle: { color: "#fff", fontSize: 20, fontWeight: "900", textAlign: "center", marginBottom: 18 },
 
-  ruleBlock: {
-    paddingVertical: 4,
-  },
+  ruleBlock: { paddingVertical: 4 },
 
-  ruleTitle: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "900",
-    marginBottom: 5,
-  },
+  ruleTitle: { color: "#fff", fontSize: 14, fontWeight: "900", marginBottom: 5 },
 
-  ruleText: {
-    color: "rgba(255,255,255,0.58)",
-    fontSize: 13,
-    lineHeight: 19,
-  },
+  ruleText: { color: "rgba(255,255,255,0.58)", fontSize: 13, lineHeight: 19 },
 
-  ruleDivider: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.07)",
-    marginVertical: 12,
-  },
+  ruleDivider: { height: 1, backgroundColor: "rgba(255,255,255,0.07)", marginVertical: 12 },
 
-  closeButton: {
-    marginTop: 18,
-    borderRadius: 16,
-    overflow: "hidden",
-  },
+  closeButton: { marginTop: 18, borderRadius: 16, overflow: "hidden" },
 
-  closeGradient: {
-    paddingVertical: 14,
-    alignItems: "center",
-  },
+  closeGradient: { paddingVertical: 14, alignItems: "center" },
 
-  closeText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "900",
-    letterSpacing: 2,
-  },
+  closeText: { color: "#fff", fontSize: 14, fontWeight: "900", letterSpacing: 2 },
 });
