@@ -10,6 +10,7 @@ import {
   Alert,
   Modal,
   ScrollView,
+  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { t } from "../i18n";
@@ -30,8 +31,8 @@ const GAMES = [
     name: t("Imposter", "Imposter", "インポスター"),
     desc: t("Who's lying?", "Who's lying?", "誰が嘘をついている？"),
     meta: t("4-12 players", "4-12 players", "4-12人"),
-    colors: ["rgba(22, 43, 92, 0.82)", "rgba(6, 10, 24, 0.98)"],
-    accent: "#4F7BFF",
+    colors: ["rgba(28, 52, 110, 0.85)", "rgba(8, 12, 28, 0.98)"],
+    accent: "#5B84FF",
   },
   {
     key: "GameFour",
@@ -39,8 +40,8 @@ const GAMES = [
     name: t("ZYN Box", "ZYN Box", "ZYNボックス"),
     desc: t("Throw and dare", "Throw and dare", "投げて挑戦"),
     meta: t("3-8 players", "3-8 players", "3-8人"),
-    colors: ["rgba(55, 24, 78, 0.9)", "rgba(13, 9, 24, 0.98)"],
-    accent: "#B96CFF",
+    colors: ["rgba(62, 28, 92, 0.88)", "rgba(15, 10, 28, 0.98)"],
+    accent: "#C07BFF",
   },
   {
     key: "SpinTheBottle",
@@ -48,8 +49,8 @@ const GAMES = [
     name: t("Spin Bottle", "Spin Bottle", "スピン・ザ・ボトル"),
     desc: t("Truth or dare", "Truth or dare", "トゥルース・オア・デア"),
     meta: t("2+ players", "2+ players", "2人以上"),
-    colors: ["rgba(12, 88, 60, 0.9)", "rgba(4, 22, 25, 0.98)"],
-    accent: "#25D98A",
+    colors: ["rgba(14, 96, 66, 0.88)", "rgba(5, 24, 26, 0.98)"],
+    accent: "#2EE69A",
   },
   {
     key: "RiskItGame",
@@ -57,8 +58,8 @@ const GAMES = [
     name: t("Risk It", "Risk It", "リスクイット"),
     desc: t("Fate decides", "Fate decides", "運命が決める"),
     meta: t("Max 7 players", "Max 7 players", "最大7人"),
-    colors: ["rgba(75, 50, 16, 0.9)", "rgba(19, 13, 12, 0.98)"],
-    accent: "#E6C46A",
+    colors: ["rgba(86, 58, 18, 0.88)", "rgba(22, 15, 12, 0.98)"],
+    accent: "#F0CC72",
     locked: false,
   },
   {
@@ -67,35 +68,63 @@ const GAMES = [
     name: t("Quiz", "Quiz", "クイズ"),
     desc: t("Coming soon", "Coming soon", "近日公開"),
     meta: t("2-20 players", "2-20 players", "2-20人"),
-    colors: ["rgba(20, 60, 80, 0.9)", "rgba(8, 18, 28, 0.98)"],
-    accent: "#38BDF8",
+    colors: ["rgba(22, 66, 90, 0.88)", "rgba(8, 20, 30, 0.98)"],
+    accent: "#46C8FA",
     comingSoon: true,
   },
 ];
 
 const RULES_NO = [
-  { title: "🍻 Never Have I Ever", text: "Drikk hvis du har gjort det som nevnes. Ta runder rundt bordet." },
-  { title: "🎭 Imposter", text: "Send telefonen rundt. Én er imposteren og kjenner ikke ordet. Alle gir hint — imposteren prøver å passe inn." },
-  { title: "📦 ZYN Box", text: "Sitt i sirkel. Les en påstand, kast boksen til den som passer best. De leser neste." },
-  { title: "🍾 Spin the Bottle", text: "Legg inn spillere og snurr. Den det peker på svarer en sannhet eller gjør en utfordring." },
-  { title: "🤾 Risk It", text: "Maks 7 spillere. Alle legger en finger på skjermen. Tilfeldig farge velges — den personen gjør utfordringen." },
+  { icon: "🍻", title: "Never Have I Ever", text: "Drikk hvis du har gjort det som nevnes. Ta runder rundt bordet." },
+  { icon: "🎭", title: "Imposter", text: "Send telefonen rundt. Én er imposteren og kjenner ikke ordet. Alle gir hint — imposteren prøver å passe inn." },
+  { icon: "📦", title: "ZYN Box", text: "Sitt i sirkel. Les en påstand, kast boksen til den som passer best. De leser neste." },
+  { icon: "🍾", title: "Spin the Bottle", text: "Legg inn spillere og snurr. Den det peker på svarer en sannhet eller gjør en utfordring." },
+  { icon: "🤾", title: "Risk It", text: "Maks 7 spillere. Alle legger en finger på skjermen. Tilfeldig farge velges — den personen gjør utfordringen." },
 ];
 
 const RULES_EN = [
-  { title: "🍻 Never Have I Ever", text: "Drink if you've done what's mentioned. Take turns around the table." },
-  { title: "🎭 Imposter", text: "Pass the phone around. One is the imposter and doesn't know the word. Everyone gives clues — the imposter tries to blend in." },
-  { title: "📦 ZYN Box", text: "Sit in a circle. Read a statement, throw the box to whoever fits best. They read next." },
-  { title: "🍾 Spin the Bottle", text: "Add players and spin. Whoever it points at answers a truth or does a dare." },
-  { title: "🤾 Risk It", text: "Max 7 players. Everyone puts a finger on the screen. A random color is picked — that person does the challenge." },
+  { icon: "🍻", title: "Never Have I Ever", text: "Drink if you've done what's mentioned. Take turns around the table." },
+  { icon: "🎭", title: "Imposter", text: "Pass the phone around. One is the imposter and doesn't know the word. Everyone gives clues — the imposter tries to blend in." },
+  { icon: "📦", title: "ZYN Box", text: "Sit in a circle. Read a statement, throw the box to whoever fits best. They read next." },
+  { icon: "🍾", title: "Spin the Bottle", text: "Add players and spin. Whoever it points at answers a truth or does a dare." },
+  { icon: "🤾", title: "Risk It", text: "Max 7 players. Everyone puts a finger on the screen. A random color is picked — that person does the challenge." },
 ];
 
 const RULES_JA = [
-  { title: "🍻 ネバー・ハブ・アイ・エバー", text: "言われたことをしたことがあれば飲む。テーブルを回って順番に。" },
-  { title: "🎭 インポスター", text: "電話を回す。一人がインポスターで言葉を知らない。みんなヒントを出す — インポスターは紛れ込もうとする。" },
-  { title: "📦 ZYNボックス", text: "輪になって座る。発言を読んで、最も合う人にボックスを投げる。" },
-  { title: "🍾 スピン・ザ・ボトル", text: "プレイヤーを追加してスピン。指された人が真実を答えるか挑戦する。" },
-  { title: "🤾 リスクイット", text: "最大7人。全員が画面に指を置く。ランダムな色が選ばれる — その人が挑戦する。" },
+  { icon: "🍻", title: "ネバー・ハブ・アイ・エバー", text: "言われたことをしたことがあれば飲む。テーブルを回って順番に。" },
+  { icon: "🎭", title: "インポスター", text: "電話を回す。一人がインポスターで言葉を知らない。みんなヒントを出す — インポスターは紛れ込もうとする。" },
+  { icon: "📦", title: "ZYNボックス", text: "輪になって座る。発言を読んで、最も合う人にボックスを投げる。" },
+  { icon: "🍾", title: "スピン・ザ・ボトル", text: "プレイヤーを追加してスピン。指された人が真実を答えるか挑戦する。" },
+  { icon: "🤾", title: "リスクイット", text: "最大7人。全員が画面に指を置く。ランダムな色が選ばれる — その人が挑戦する。" },
 ];
+
+/* ------------------------------------------------------------------ */
+/*  Pressable med skala-feedback — gjenbrukes på alle trykkbare kort  */
+/* ------------------------------------------------------------------ */
+function ScalePressable({ onPress, style, children, accessibilityLabel, disabled }) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const animateTo = (toValue) =>
+    Animated.spring(scale, {
+      toValue,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 5,
+    }).start();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => animateTo(0.965)}
+      onPressOut={() => animateTo(1)}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+    >
+      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
+    </Pressable>
+  );
+}
 
 export default function HomeScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
@@ -103,40 +132,62 @@ export default function HomeScreen({ navigation, route }) {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const beerAnim = useRef(new Animated.Value(0)).current;
+  const proPulse = useRef(new Animated.Value(0)).current;
   const [showRules, setShowRules] = useState(false);
 
+  const featuredGame = GAMES.find((g) => g.isFeatured);
+  const otherGames = GAMES.filter((g) => !g.isFeatured);
+  const rules = t(RULES_NO, RULES_EN, RULES_JA);
+
+  // Én Animated.Value per kort for staggered inngang
+  const cardAnims = useRef(otherGames.map(() => new Animated.Value(0))).current;
+
   useEffect(() => {
+    // Hero fader inn først
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 650,
+      duration: 550,
       useNativeDriver: true,
     }).start();
 
+    // Kortene glir inn ett og ett
+    Animated.stagger(
+      80,
+      cardAnims.map((a) =>
+        Animated.timing(a, {
+          toValue: 1,
+          duration: 420,
+          useNativeDriver: true,
+        })
+      )
+    ).start();
+
+    // Svevende emoji i hero
     Animated.loop(
       Animated.sequence([
-        Animated.timing(beerAnim, {
-          toValue: 1,
-          duration: 1800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(beerAnim, {
-          toValue: 0,
-          duration: 1800,
-          useNativeDriver: true,
-        }),
+        Animated.timing(beerAnim, { toValue: 1, duration: 1800, useNativeDriver: true }),
+        Animated.timing(beerAnim, { toValue: 0, duration: 1800, useNativeDriver: true }),
+      ])
+    ).start();
+
+    // Diskret puls på PRO-knappen
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(proPulse, { toValue: 1, duration: 1600, useNativeDriver: true }),
+        Animated.timing(proPulse, { toValue: 0, duration: 1600, useNativeDriver: true }),
       ])
     ).start();
   }, []);
 
- const goToGame = (game) => {
-  if (game.comingSoon) {
-    Alert.alert(
-      t("🧠 Quiz", "🧠 Quiz", "🧠 クイズ"),
-      t("Quiz kommer snart!", "Quiz coming soon!", "クイズは近日公開！")
-    );
-    return;
-  }
-  if (game.locked) {
+  const goToGame = (game) => {
+    if (game.comingSoon) {
+      Alert.alert(
+        t("🧠 Quiz", "🧠 Quiz", "🧠 クイズ"),
+        t("Quiz kommer snart!", "Quiz coming soon!", "クイズは近日公開！")
+      );
+      return;
+    }
+    if (game.locked) {
       Alert.alert(
         t("👑 Party Pass", "👑 Party Pass", "👑 パーティーパス"),
         t(
@@ -161,31 +212,23 @@ export default function HomeScreen({ navigation, route }) {
     );
   };
 
-  const featuredGame = GAMES.find((g) => g.isFeatured);
-  const otherGames = GAMES.filter((g) => !g.isFeatured);
-  const rules = t(RULES_NO, RULES_EN, RULES_JA);
-
-  const beerY = beerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -6],
-  });
+  const beerY = beerAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -7] });
+  const proScale = proPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.02] });
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
+      {/* Bakgrunn */}
       <LinearGradient
-        colors={["#14121F", "#080A15", "#050711"]}
+        colors={["#15121F", "#090B16", "#050711"]}
         locations={[0, 0.45, 1]}
         style={StyleSheet.absoluteFill}
       />
-
       <View style={styles.redBlob} />
       <View style={styles.purpleBlob} />
-
       <LinearGradient
         colors={["rgba(5,7,17,0)", "#050711"]}
-        locations={[0, 1]}
         style={styles.darkFade}
       />
 
@@ -194,8 +237,15 @@ export default function HomeScreen({ navigation, route }) {
         contentContainerStyle={styles.scroll}
         style={{ opacity: fadeAnim }}
       >
+        {/* ---------- Toppbar ---------- */}
         <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => setShowRules(true)} style={styles.rulesButton}>
+          <TouchableOpacity
+            onPress={() => setShowRules(true)}
+            style={styles.rulesButton}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={t("Vis spilleregler", "Show rules", "ルールを表示")}
+          >
             <Text style={styles.rulesIcon}>📖</Text>
           </TouchableOpacity>
 
@@ -203,131 +253,219 @@ export default function HomeScreen({ navigation, route }) {
             style={styles.profilePill}
             onPress={() => navigation.navigate("Intro")}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={t("Endre profil", "Edit profile", "プロフィール編集")}
           >
             <LinearGradient colors={["#FF6A54", "#EC2C83", "#7A4DFF"]} style={styles.profileRing}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>{initials}</Text>
               </View>
             </LinearGradient>
-            <Text style={styles.profileName}>{playerName}</Text>
+            <Text style={styles.profileName} numberOfLines={1}>
+              {playerName}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.hero}>
-          <Text style={styles.heyText}>
-            HEY {playerName.toUpperCase()} <Text style={styles.dot}>●</Text>
-          </Text>
+        {/* ---------- Hilsen ---------- */}
+        <Text style={styles.heyText}>
+          HEY {playerName.toUpperCase()} <Text style={styles.dot}>●</Text>
+        </Text>
 
-          <View style={styles.heroMain}>
-            <View style={styles.heroTextWrap}>
-              <Text style={styles.heroTitle}>Never Have{"\n"}I Ever</Text>
-              <Text style={styles.heroSub}>{featuredGame.desc}</Text>
+        {/* ---------- Featured hero-kort ---------- */}
+        <ScalePressable
+          onPress={() => goToGame(featuredGame)}
+          style={styles.heroCard}
+          accessibilityLabel={`${featuredGame.name}. ${featuredGame.desc}`}
+        >
+          <LinearGradient
+            colors={["rgba(255, 70, 110, 0.22)", "rgba(122, 45, 255, 0.16)", "rgba(10, 12, 26, 0.6)"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroInner}
+          >
+            <View style={styles.heroBadge}>
+              <Text style={styles.heroBadgeText}>
+                ⭐ {t("MEST POPULÆR", "MOST POPULAR", "一番人気")}
+              </Text>
             </View>
 
-            <Animated.View
-              pointerEvents="none"
-              style={[styles.beerWrap, { transform: [{ translateY: beerY }, { rotate: "-8deg" }] }]}
-            >
-              <Text style={styles.beerEmoji}>🍻</Text>
-            </Animated.View>
-          </View>
+            <View style={styles.heroMain}>
+              <View style={styles.heroTextWrap}>
+                <Text style={styles.heroTitle}>Never Have{"\n"}I Ever</Text>
+                <Text style={styles.heroSub}>{featuredGame.desc}</Text>
+              </View>
 
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => goToGame(featuredGame)}
-            style={styles.heroButton}
-          >
-            <LinearGradient
-              colors={["#FF6252", "#F13381", "#B92BFF"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.heroButtonGradient}
-            >
-              <Text style={styles.heroButtonText}>LET'S DRINK</Text>
-              <Text style={styles.heroArrow}>→</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+              <Animated.View
+                pointerEvents="none"
+                style={[styles.beerWrap, { transform: [{ translateY: beerY }, { rotate: "-8deg" }] }]}
+              >
+                <Text style={styles.beerEmoji}>🍻</Text>
+              </Animated.View>
+            </View>
 
-        <Text style={styles.sectionLabel}>MORE GAMES</Text>
-
-        <View style={styles.gamesList}>
-          {otherGames.map((game) => (
-            <TouchableOpacity
-              key={game.key}
-              activeOpacity={0.86}
-              onPress={() => goToGame(game)}
-              style={styles.gameCard}
-            >
+            <View style={styles.heroButton}>
               <LinearGradient
-                colors={game.colors}
+                colors={["#FF6252", "#F13381", "#B92BFF"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={[
-                  styles.gameGradient,
-                  { borderColor: game.locked ? "rgba(230,196,106,0.18)" : "rgba(255,255,255,0.08)" },
-                ]}
+                style={styles.heroButtonGradient}
               >
-                <View style={[styles.gameIconBox, { backgroundColor: game.accent }]}>
-                  <Text style={styles.gameIcon}>{game.icon}</Text>
-                </View>
-
-                <View style={styles.gameText}>
-                  <View style={styles.nameRow}>
-                    <Text style={styles.gameName}>{game.name}</Text>
-                    {game.locked && (
-                      <View style={styles.proBadge}>
-                        <Text style={styles.proBadgeText}>PRO</Text>
-                      </View>
-                    )}
-                    {game.comingSoon && (
-  <View style={styles.soonBadge}>
-    <Text style={styles.soonBadgeText}>SOON</Text>
-  </View>
-)}
-                  </View>
-                  <Text style={[styles.gameDesc, { color: game.accent }]}>{game.desc}</Text>
-                  <Text style={styles.gameMeta}>{game.meta}</Text>
-                </View>
-
-                <View style={[styles.arrowCircle, { backgroundColor: `${game.accent}20` }]}>
-                  <Text style={[styles.cardArrow, { color: game.locked ? "#E6C46A" : "#fff" }]}>
-                    {game.locked ? "🔒" : "→"}
-                  </Text>
-                </View>
+                <Text style={styles.heroButtonText}>
+                  {t("LA OSS DRIKKE", "LET'S DRINK", "乾杯しよう")}
+                </Text>
+                <Text style={styles.heroArrow}>→</Text>
               </LinearGradient>
-            </TouchableOpacity>
-          ))}
+            </View>
+          </LinearGradient>
+        </ScalePressable>
+
+        {/* ---------- Flere spill ---------- */}
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionLabel}>{t("FLERE SPILL", "MORE GAMES", "他のゲーム")}</Text>
+          <View style={styles.sectionLine} />
+        </View>
+
+        <View style={styles.gamesList}>
+          {otherGames.map((game, i) => {
+            const translateY = cardAnims[i].interpolate({
+              inputRange: [0, 1],
+              outputRange: [22, 0],
+            });
+            const isDisabledLook = game.comingSoon;
+
+            return (
+              <Animated.View
+                key={game.key}
+                style={{ opacity: cardAnims[i], transform: [{ translateY }] }}
+              >
+                <ScalePressable
+                  onPress={() => goToGame(game)}
+                  style={[styles.gameCard, isDisabledLook && styles.gameCardSoon]}
+                  accessibilityLabel={`${game.name}. ${game.desc}. ${game.meta}`}
+                >
+                  <LinearGradient
+                    colors={game.colors}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={[
+                      styles.gameGradient,
+                      {
+                        borderColor: game.locked
+                          ? "rgba(240,204,114,0.22)"
+                          : `${game.accent}22`,
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.gameIconBox,
+                        {
+                          backgroundColor: `${game.accent}26`,
+                          borderColor: `${game.accent}55`,
+                        },
+                      ]}
+                    >
+                      <Text style={styles.gameIcon}>{game.icon}</Text>
+                    </View>
+
+                    <View style={styles.gameText}>
+                      <View style={styles.nameRow}>
+                        <Text style={styles.gameName} numberOfLines={1}>
+                          {game.name}
+                        </Text>
+                        {game.locked && (
+                          <View style={styles.proBadge}>
+                            <Text style={styles.proBadgeText}>PRO</Text>
+                          </View>
+                        )}
+                        {game.comingSoon && (
+                          <View style={styles.soonBadge}>
+                            <Text style={styles.soonBadgeText}>SOON</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={[styles.gameDesc, { color: game.accent }]} numberOfLines={1}>
+                        {game.desc}
+                      </Text>
+                      <Text style={styles.gameMeta}>{game.meta}</Text>
+                    </View>
+
+                    <View style={[styles.arrowCircle, { backgroundColor: `${game.accent}1E` }]}>
+                      <Text
+                        style={[
+                          styles.cardArrow,
+                          { color: game.locked ? "#F0CC72" : game.accent },
+                        ]}
+                      >
+                        {game.locked ? "🔒" : "→"}
+                      </Text>
+                    </View>
+                  </LinearGradient>
+                </ScalePressable>
+              </Animated.View>
+            );
+          })}
         </View>
       </Animated.ScrollView>
 
-      <TouchableOpacity activeOpacity={0.9} style={styles.buyProFloating} onPress={handleBuyPro}>
-        <LinearGradient
-          colors={["#F8D879", "#D89B25", "#8A5A10"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.buyProGradient}
+      {/* ---------- Flytende PRO-knapp ---------- */}
+      <Animated.View style={[styles.buyProFloating, { transform: [{ scale: proScale }] }]}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={handleBuyPro}
+          accessibilityRole="button"
+          accessibilityLabel={t("Kjøp Party Pass", "Buy Party Pass", "パーティーパスを購入")}
         >
-          <Text style={styles.buyProText}>👑 BUY PRO</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+          <LinearGradient
+            colors={["#F8D879", "#D89B25", "#8A5A10"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.buyProGradient}
+          >
+            <Text style={styles.buyProText}>
+              👑 {t("KJØP PRO", "BUY PRO", "PROを購入")}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
 
-      <Modal transparent animationType="fade" visible={showRules}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>📖 {t("Spilleregler", "Rules", "ルール")}</Text>
-            <ScrollView showsVerticalScrollIndicator={false}>
+      {/* ---------- Regelmodal ---------- */}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={showRules}
+        onRequestClose={() => setShowRules(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setShowRules(false)}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>{t("Spilleregler", "How to play", "遊び方")}</Text>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.modalScroll}>
               {rules.map((r, i) => (
                 <View key={r.title}>
                   <View style={styles.ruleBlock}>
-                    <Text style={styles.ruleTitle}>{r.title}</Text>
-                    <Text style={styles.ruleText}>{r.text}</Text>
+                    <View style={styles.ruleIconBox}>
+                      <Text style={styles.ruleIcon}>{r.icon}</Text>
+                    </View>
+                    <View style={styles.ruleTextWrap}>
+                      <Text style={styles.ruleTitle}>{r.title}</Text>
+                      <Text style={styles.ruleText}>{r.text}</Text>
+                    </View>
                   </View>
                   {i < rules.length - 1 && <View style={styles.ruleDivider} />}
                 </View>
               ))}
             </ScrollView>
-            <TouchableOpacity onPress={() => setShowRules(false)} activeOpacity={0.85} style={styles.closeButton}>
+
+            <TouchableOpacity
+              onPress={() => setShowRules(false)}
+              activeOpacity={0.85}
+              style={styles.closeButton}
+              accessibilityRole="button"
+              accessibilityLabel={t("Lukk reglene", "Close rules", "ルールを閉じる")}
+            >
               <LinearGradient
                 colors={["#FF4D6D", "#B000FF"]}
                 start={{ x: 0, y: 0 }}
@@ -337,8 +475,8 @@ export default function HomeScreen({ navigation, route }) {
                 <Text style={styles.closeText}>{t("LUKK", "CLOSE", "閉じる")}</Text>
               </LinearGradient>
             </TouchableOpacity>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );
@@ -347,180 +485,325 @@ export default function HomeScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#050711" },
 
+  /* ---------- Bakgrunn ---------- */
+  redBlob: {
+    position: "absolute",
+    top: -130,
+    left: -170,
+    width: width * 1.15,
+    height: width * 1.15,
+    borderRadius: width,
+    backgroundColor: "rgba(255, 69, 105, 0.34)",
+    shadowColor: "#FF4569",
+    shadowOpacity: 1,
+    shadowRadius: 90,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 20,
+  },
+  purpleBlob: {
+    position: "absolute",
+    top: 200,
+    right: -190,
+    width: width * 1.2,
+    height: width * 1.2,
+    borderRadius: width,
+    backgroundColor: "rgba(126, 45, 255, 0.26)",
+    shadowColor: "#7E2DFF",
+    shadowOpacity: 1,
+    shadowRadius: 100,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 20,
+  },
+  darkFade: {
+    position: "absolute",
+    top: height * 0.36,
+    left: 0,
+    right: 0,
+    height: height * 0.44,
+  },
+
+  scroll: { paddingTop: 56, paddingHorizontal: 20, paddingBottom: 130 },
+
+  /* ---------- Toppbar ---------- */
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 36,
+  },
+  rulesButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rulesIcon: { fontSize: 21 },
+  profilePill: {
+    height: 50,
+    paddingLeft: 5,
+    paddingRight: 16,
+    borderRadius: 28,
+    backgroundColor: "rgba(8, 10, 24, 0.85)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    flexDirection: "row",
+    alignItems: "center",
+    maxWidth: width * 0.55,
+  },
+  profileRing: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#111321",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: { color: "#fff", fontSize: 14, fontWeight: "900" },
+  profileName: { color: "#fff", fontSize: 14, fontWeight: "800", flexShrink: 1 },
+
+  /* ---------- Hilsen ---------- */
+  heyText: {
+    color: "rgba(255,255,255,0.66)",
+    fontSize: 12.5,
+    fontWeight: "900",
+    letterSpacing: 3,
+    marginBottom: 16,
+  },
+  dot: { color: "#E6B94A" },
+
+  /* ---------- Hero-kort ---------- */
+  heroCard: {
+    borderRadius: 28,
+    overflow: "hidden",
+    marginBottom: 36,
+    borderWidth: 1,
+    borderColor: "rgba(255, 90, 130, 0.28)",
+    shadowColor: "#F13381",
+    shadowOpacity: 0.35,
+    shadowRadius: 26,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 14,
+  },
+  heroInner: { padding: 22, paddingTop: 18 },
+  heroBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: "rgba(255, 98, 82, 0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 98, 82, 0.35)",
+    marginBottom: 16,
+  },
+  heroBadgeText: {
+    color: "#FF8A78",
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1.4,
+  },
+  heroMain: { minHeight: 130, position: "relative", marginBottom: 20 },
+  heroTextWrap: { zIndex: 3, maxWidth: width * 0.62 },
+  heroTitle: {
+    color: "#fff",
+    fontSize: 38,
+    lineHeight: 43,
+    fontWeight: "900",
+    letterSpacing: -1.4,
+  },
+  heroSub: {
+    marginTop: 12,
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  beerWrap: { position: "absolute", right: -16, bottom: -14, zIndex: 2 },
+  beerEmoji: { fontSize: 110, opacity: 0.95 },
+  heroButton: { height: 56, borderRadius: 18, overflow: "hidden" },
+  heroButtonGradient: {
+    flex: 1,
+    borderRadius: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  heroButtonText: { color: "#fff", fontSize: 15, fontWeight: "900", letterSpacing: 1.2 },
+  heroArrow: { color: "#fff", fontSize: 24, fontWeight: "900", marginTop: -2 },
+
+  /* ---------- Seksjon ---------- */
+  sectionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    gap: 14,
+  },
+  sectionLabel: {
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 12.5,
+    fontWeight: "900",
+    letterSpacing: 3.6,
+  },
+  sectionLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.1)",
+  },
+
+  /* ---------- Spillkort ---------- */
+  gamesList: { gap: 14 },
+  gameCard: {
+    height: 90,
+    borderRadius: 24,
+    overflow: "hidden",
+  },
+  gameCardSoon: { opacity: 0.6 },
+  gameGradient: {
+    flex: 1,
+    borderRadius: 24,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+  },
+  gameIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+    borderWidth: 1,
+  },
+  gameIcon: { fontSize: 26 },
+  gameText: { flex: 1 },
+  nameRow: { flexDirection: "row", alignItems: "center" },
+  gameName: {
+    color: "#fff",
+    fontSize: 16.5,
+    fontWeight: "900",
+    letterSpacing: -0.3,
+    flexShrink: 1,
+  },
+  gameDesc: { fontSize: 12.5, fontWeight: "800", marginTop: 3 },
+  gameMeta: { color: "rgba(255,255,255,0.6)", fontSize: 11.5, fontWeight: "700", marginTop: 2 },
+  arrowCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 10,
+  },
+  cardArrow: { fontSize: 24, fontWeight: "900", marginTop: -2 },
+
+  /* ---------- Badges ---------- */
+  proBadge: {
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 999,
+    backgroundColor: "rgba(240,204,114,0.2)",
+    borderWidth: 1,
+    borderColor: "rgba(240,204,114,0.4)",
+  },
+  proBadgeText: { color: "#F0CC72", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
   soonBadge: {
     marginLeft: 8,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 2.5,
     borderRadius: 999,
-    backgroundColor: "rgba(56,189,248,0.22)",
+    backgroundColor: "rgba(70,200,250,0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(70,200,250,0.4)",
   },
-  soonBadgeText: {
-    color: "#38BDF8",
-    fontSize: 9,
-    fontWeight: "900",
-    letterSpacing: 1,
-  },
+  soonBadgeText: { color: "#46C8FA", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
 
-  redBlob: {
-    position: "absolute", top: -130, left: -170,
-    width: width * 1.15, height: width * 1.15, borderRadius: width,
-    backgroundColor: "rgba(255, 69, 105, 0.42)",
-    shadowColor: "#FF4569", shadowOpacity: 1, shadowRadius: 90,
-    shadowOffset: { width: 0, height: 0 }, elevation: 20,
-  },
-
-  purpleBlob: {
-    position: "absolute", top: 170, right: -190,
-    width: width * 1.2, height: width * 1.2, borderRadius: width,
-    backgroundColor: "rgba(126, 45, 255, 0.34)",
-    shadowColor: "#7E2DFF", shadowOpacity: 1, shadowRadius: 100,
-    shadowOffset: { width: 0, height: 0 }, elevation: 20,
-  },
-
-  darkFade: {
-    position: "absolute", top: height * 0.38, left: 0, right: 0, height: height * 0.42,
-  },
-
-  scroll: { paddingTop: 56, paddingHorizontal: 22, paddingBottom: 120 },
-
-  topBar: {
-    height: 48, flexDirection: "row", alignItems: "center",
-    justifyContent: "space-between", marginBottom: 84,
-  },
-
-  rulesButton: {
-    width: 52, height: 52, borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.09)", borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.13)", alignItems: "center", justifyContent: "center",
-  },
-
-  rulesIcon: { fontSize: 22 },
-
-  profilePill: {
-    height: 52, paddingLeft: 5, paddingRight: 16, borderRadius: 30,
-    backgroundColor: "rgba(6, 8, 20, 0.88)", borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)", flexDirection: "row", alignItems: "center",
-  },
-
-  profileRing: {
-    width: 42, height: 42, borderRadius: 21,
-    alignItems: "center", justifyContent: "center", marginRight: 12,
-  },
-
-  avatar: {
-    width: 33, height: 33, borderRadius: 17,
-    backgroundColor: "#111321", alignItems: "center", justifyContent: "center",
-  },
-
-  avatarText: { color: "#fff", fontSize: 15, fontWeight: "900" },
-
-  profileName: { color: "#fff", fontSize: 15, fontWeight: "900" },
-
-  hero: { marginBottom: 42 },
-
-  heyText: {
-    color: "rgba(255,255,255,0.72)", fontSize: 13, fontWeight: "900",
-    letterSpacing: 3.2, marginBottom: 22,
-  },
-
-  dot: { color: "#E6B94A" },
-
-  heroMain: { height: 205, position: "relative" },
-
-  heroTextWrap: { zIndex: 3 },
-
-  heroTitle: { color: "#fff", fontSize: 43, lineHeight: 49, fontWeight: "900", letterSpacing: -1.6 },
-
-  heroSub: { marginTop: 18, color: "rgba(255,255,255,0.63)", fontSize: 15, fontWeight: "800" },
-
-  beerWrap: { position: "absolute", right: -10, bottom: -4, zIndex: 2 },
-
-  beerEmoji: { fontSize: 128, opacity: 0.92 },
-
-  heroButton: { width: width * 0.56, height: 58, borderRadius: 20, overflow: "hidden" },
-
-  heroButtonGradient: {
-    flex: 1, borderRadius: 20, flexDirection: "row",
-    alignItems: "center", justifyContent: "center", gap: 12,
-  },
-
-  heroButtonText: { color: "#fff", fontSize: 15, fontWeight: "900", letterSpacing: 1.1 },
-
-  heroArrow: { color: "#fff", fontSize: 29, fontWeight: "900", marginTop: -2 },
-
-  sectionLabel: {
-    color: "rgba(255,255,255,0.48)", fontSize: 13, fontWeight: "900",
-    letterSpacing: 4, marginBottom: 18,
-  },
-
-  gamesList: { gap: 16 },
-
-  gameCard: { height: 88, borderRadius: 24, overflow: "hidden" },
-
-  gameGradient: {
-    flex: 1, borderRadius: 24, paddingHorizontal: 14,
-    flexDirection: "row", alignItems: "center", borderWidth: 1,
-  },
-
-  gameIconBox: { width: 58, height: 58, borderRadius: 17, alignItems: "center", justifyContent: "center", marginRight: 16 },
-
-  gameIcon: { fontSize: 27 },
-
-  gameText: { flex: 1 },
-
-  nameRow: { flexDirection: "row", alignItems: "center" },
-
-  gameName: { color: "#fff", fontSize: 17, fontWeight: "900", letterSpacing: -0.3 },
-
-  gameDesc: { fontSize: 12.5, fontWeight: "900", marginTop: 3 },
-
-  gameMeta: { color: "rgba(255,255,255,0.48)", fontSize: 11.5, fontWeight: "800", marginTop: 2 },
-
-  arrowCircle: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", marginLeft: 10 },
-
-  cardArrow: { fontSize: 28, fontWeight: "900", marginTop: -2 },
-
-  proBadge: { marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: "rgba(230,196,106,0.26)" },
-
-  proBadgeText: { color: "#E6C46A", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
-
+  /* ---------- PRO-knapp ---------- */
   buyProFloating: {
-    position: "absolute", left: 22, right: 22, bottom: 24, height: 58,
-    borderRadius: 29, overflow: "hidden", zIndex: 50,
-    shadowColor: "#E6C46A", shadowOpacity: 0.35, shadowRadius: 18,
-    shadowOffset: { width: 8, height: 8 }, elevation: 12,
+    position: "absolute",
+    left: 20,
+    right: 20,
+    bottom: 26,
+    zIndex: 50,
+    borderRadius: 29,
+    shadowColor: "#E6C46A",
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 12,
   },
-
   buyProGradient: {
-    flex: 1, borderRadius: 29, alignItems: "center", justifyContent: "center",
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.25)",
+    height: 58,
+    borderRadius: 29,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.28)",
   },
-
   buyProText: { color: "#171006", fontSize: 15, fontWeight: "900", letterSpacing: 1.3 },
 
+  /* ---------- Modal ---------- */
   modalOverlay: {
-    flex: 1, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center",
-    alignItems: "center", paddingHorizontal: 18,
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.84)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 18,
   },
-
   modalCard: {
-    width: "100%", maxHeight: "82%", backgroundColor: "#12121F",
-    borderRadius: 28, padding: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
+    width: "100%",
+    maxHeight: "80%",
+    backgroundColor: "#13131F",
+    borderRadius: 28,
+    padding: 22,
+    paddingTop: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
-
-  modalTitle: { color: "#fff", fontSize: 20, fontWeight: "900", textAlign: "center", marginBottom: 18 },
-
-  ruleBlock: { paddingVertical: 4 },
-
-  ruleTitle: { color: "#fff", fontSize: 14, fontWeight: "900", marginBottom: 5 },
-
-  ruleText: { color: "rgba(255,255,255,0.58)", fontSize: 13, lineHeight: 19 },
-
+  modalHandle: {
+    alignSelf: "center",
+    width: 42,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    marginBottom: 14,
+  },
+  modalTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "900",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  modalScroll: { flexGrow: 0 },
+  ruleBlock: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 4 },
+  ruleIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  ruleIcon: { fontSize: 18 },
+  ruleTextWrap: { flex: 1 },
+  ruleTitle: { color: "#fff", fontSize: 14.5, fontWeight: "900", marginBottom: 4 },
+  ruleText: { color: "rgba(255,255,255,0.62)", fontSize: 13, lineHeight: 19 },
   ruleDivider: { height: 1, backgroundColor: "rgba(255,255,255,0.07)", marginVertical: 12 },
-
   closeButton: { marginTop: 18, borderRadius: 16, overflow: "hidden" },
-
   closeGradient: { paddingVertical: 14, alignItems: "center" },
-
   closeText: { color: "#fff", fontSize: 14, fontWeight: "900", letterSpacing: 2 },
 });

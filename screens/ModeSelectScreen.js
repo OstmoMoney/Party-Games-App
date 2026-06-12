@@ -9,6 +9,7 @@ import {
   StatusBar,
   Alert,
   ScrollView,
+  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { t } from "../i18n";
@@ -26,8 +27,9 @@ const MODES = [
       "Lightly funny questions. Perfect for dates or new people.",
       "適度に面白い質問。デートや新しい人にぴったり。"
     ),
-    colors: ["rgba(12, 88, 60, 0.9)", "rgba(4, 22, 25, 0.98)"],
-    accent: "#25D98A",
+    colors: ["rgba(14, 96, 66, 0.88)", "rgba(5, 24, 26, 0.98)"],
+    accent: "#2EE69A",
+    intensity: 1,
     locked: false,
   },
   {
@@ -40,8 +42,9 @@ const MODES = [
       "Intimate, romantic and slightly spicy questions. Really get to know each other.",
       "親密でロマンチック、少しスパイシーな質問。本当に知り合おう。"
     ),
-    colors: ["rgba(93, 28, 74, 0.92)", "rgba(22, 8, 24, 0.98)"],
-    accent: "#EC4899",
+    colors: ["rgba(98, 30, 78, 0.9)", "rgba(24, 9, 26, 0.98)"],
+    accent: "#F35BAB",
+    intensity: 2,
     locked: false,
   },
   {
@@ -54,8 +57,9 @@ const MODES = [
       "Drinking dares and challenges. For when you're already going.",
       "飲み物の挑戦とダーレス。もうエンジンがかかっているあなたへ。"
     ),
-    colors: ["rgba(22, 43, 92, 0.88)", "rgba(6, 10, 24, 0.98)"],
-    accent: "#4F7BFF",
+    colors: ["rgba(28, 52, 110, 0.85)", "rgba(8, 12, 28, 0.98)"],
+    accent: "#5B84FF",
+    intensity: 3,
     locked: false,
   },
   {
@@ -68,8 +72,9 @@ const MODES = [
       "Properly raw challenges. Not for the faint of heart.",
       "本格的に生々しい挑戦。心の弱い人向けではない。"
     ),
-    colors: ["rgba(109, 49, 18, 0.92)", "rgba(22, 11, 8, 0.98)"],
+    colors: ["rgba(112, 52, 20, 0.9)", "rgba(24, 12, 8, 0.98)"],
     accent: "#FB923C",
+    intensity: 4,
     locked: true,
   },
   {
@@ -82,11 +87,14 @@ const MODES = [
       "No limits. Absolute madness. Only for those who dare.",
       "制限なし。完全な狂気。勇気ある者だけに。"
     ),
-    colors: ["rgba(95, 20, 30, 0.94)", "rgba(22, 7, 10, 0.98)"],
-    accent: "#F87171",
+    colors: ["rgba(100, 22, 32, 0.92)", "rgba(24, 8, 11, 0.98)"],
+    accent: "#FF6B6B",
+    intensity: 5,
     locked: true,
   },
 ];
+
+const MAX_INTENSITY = 5;
 
 const GAME_META = {
   RiskItGame: { icon: "🏃", name: "Risk It" },
@@ -105,6 +113,55 @@ const SCREEN_MAP = {
   SpinTheBottle: "SpinTheBottle",
 };
 
+/* ------------------------------------------------------------------ */
+/*  Pressable med skala-feedback — samme som på Home og Intro         */
+/* ------------------------------------------------------------------ */
+function ScalePressable({ onPress, style, children, accessibilityLabel }) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const animateTo = (toValue) =>
+    Animated.spring(scale, {
+      toValue,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 5,
+    }).start();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => animateTo(0.965)}
+      onPressOut={() => animateTo(1)}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+    >
+      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
+    </Pressable>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Intensitetsmåler — fem søyler som viser hvor vilt moduset er      */
+/* ------------------------------------------------------------------ */
+function IntensityMeter({ level, accent }) {
+  return (
+    <View style={styles.meterRow} accessibilityLabel={`${level} / ${MAX_INTENSITY}`}>
+      {Array.from({ length: MAX_INTENSITY }).map((_, i) => (
+        <View
+          key={i}
+          style={[
+            styles.meterBar,
+            {
+              backgroundColor: i < level ? accent : "rgba(255,255,255,0.12)",
+              height: 5 + i * 2, // søylene vokser — som en volum-indikator
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
 export default function ModeSelectScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
   const gameName = route?.params?.game || "RiskItGame";
@@ -113,41 +170,44 @@ export default function ModeSelectScreen({ navigation, route }) {
   const [selected, setSelected] = useState(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(28)).current;
+  const slideAnim = useRef(new Animated.Value(26)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnims = useRef(MODES.map(() => new Animated.Value(1))).current;
+  const proPulse = useRef(new Animated.Value(0)).current;
+  const cardAnims = useRef(MODES.map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
+    // Header inn først
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 650,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 650,
-        useNativeDriver: true,
-      }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 550, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 550, useNativeDriver: true }),
     ]).start();
 
+    // Kortene glir inn ett og ett
+    Animated.stagger(
+      75,
+      cardAnims.map((a) =>
+        Animated.timing(a, { toValue: 1, duration: 400, useNativeDriver: true })
+      )
+    ).start();
+
+    // Svevende emoji i header
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 0,
-          duration: 1800,
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0, duration: 1800, useNativeDriver: true }),
+      ])
+    ).start();
+
+    // Diskret puls på PRO-knappen
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(proPulse, { toValue: 1, duration: 1600, useNativeDriver: true }),
+        Animated.timing(proPulse, { toValue: 0, duration: 1600, useNativeDriver: true }),
       ])
     ).start();
   }, []);
 
-  const handleSelect = (mode, index) => {
+  const handleSelect = (mode) => {
     if (mode.locked) {
       Alert.alert(
         t("👑 Party Pass", "👑 Party Pass", "👑 パーティーパス"),
@@ -166,27 +226,15 @@ export default function ModeSelectScreen({ navigation, route }) {
 
     setSelected(mode.key);
 
-    Animated.sequence([
-      Animated.timing(scaleAnims[index], {
-        toValue: 0.97,
-        duration: 70,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnims[index], {
-        toValue: 1,
-        duration: 70,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setTimeout(() => {
-        const screen = SCREEN_MAP[gameName] || "ComingSoon";
-        navigation.navigate(screen, {
-          playerName,
-          game: gameName,
-          mode: mode.key,
-        });
-      }, 120);
-    });
+    // Kort pause så man rekker å se den valgte rammen før navigering
+    setTimeout(() => {
+      const screen = SCREEN_MAP[gameName] || "ComingSoon";
+      navigation.navigate(screen, {
+        playerName,
+        game: gameName,
+        mode: mode.key,
+      });
+    }, 180);
   };
 
   const handleBuyPro = () => {
@@ -200,54 +248,55 @@ export default function ModeSelectScreen({ navigation, route }) {
     );
   };
 
-  const pulseY = pulseAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -5],
-  });
+  const pulseY = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -5] });
+  const proScale = proPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.02] });
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
+      {/* Bakgrunn — identisk med Home og Intro */}
       <LinearGradient
-        colors={["#14121F", "#080A15", "#050711"]}
+        colors={["#15121F", "#090B16", "#050711"]}
         locations={[0, 0.45, 1]}
         style={StyleSheet.absoluteFill}
       />
-
       <View style={styles.redBlob} />
       <View style={styles.purpleBlob} />
-
       <LinearGradient
         colors={["rgba(5,7,17,0)", "#050711"]}
-        locations={[0, 1]}
         style={styles.darkFade}
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }}
-        >
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+          {/* ---------- Toppbar ---------- */}
           <View style={styles.topBar}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <TouchableOpacity
+              style={styles.backBtn}
+              onPress={() => navigation.goBack()}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t("Tilbake", "Go back", "戻る")}
+            >
               <Text style={styles.backText}>←</Text>
             </TouchableOpacity>
 
             <View style={styles.gameChip}>
               <Text style={styles.gameChipIcon}>{game.icon}</Text>
-              <Text style={styles.gameChipName}>{game.name}</Text>
+              <Text style={styles.gameChipName} numberOfLines={1}>
+                {game.name}
+              </Text>
             </View>
           </View>
 
+          {/* ---------- Header ---------- */}
           <View style={styles.header}>
             <Text style={styles.eyebrow}>
               {t("VELG INTENSITET", "PICK INTENSITY", "強度を選ぶ")}
             </Text>
 
-            <Text style={styles.title}>
+            <Text style={styles.title} accessibilityRole="header">
               {t("Hvor gal", "How wild", "どれくらい")}
               {"\n"}
               {t("blir det?", "should it be?", "ワイルドに？")}
@@ -265,125 +314,168 @@ export default function ModeSelectScreen({ navigation, route }) {
               pointerEvents="none"
               style={[
                 styles.headerIconWrap,
-                {
-                  transform: [{ translateY: pulseY }, { rotate: "-8deg" }],
-                },
+                { transform: [{ translateY: pulseY }, { rotate: "-8deg" }] },
               ]}
             >
               <Text style={styles.headerIcon}>{game.icon}</Text>
             </Animated.View>
           </View>
 
-          <Text style={styles.sectionLabel}>
-            {t("MODES", "MODES", "モード")}
-          </Text>
+          {/* ---------- Skala-hint: rolig → vilt ---------- */}
+          <View style={styles.sectionRow}>
+            <Text style={styles.sectionLabel}>
+              {t("ROLIG", "CALM", "おだやか")}
+            </Text>
+            <LinearGradient
+              colors={["#2EE69A", "#5B84FF", "#FB923C", "#FF6B6B"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.sectionScale}
+            />
+            <Text style={styles.sectionLabel}>
+              {t("VILT", "WILD", "ワイルド")}
+            </Text>
+          </View>
 
+          {/* ---------- Modes ---------- */}
           <View style={styles.modeList}>
-            {MODES.map((mode, i) => (
-              <Animated.View
-                key={mode.key}
-                style={{ transform: [{ scale: scaleAnims[i] }] }}
-              >
-                <TouchableOpacity
-                  activeOpacity={0.86}
-                  onPress={() => handleSelect(mode, i)}
-                  style={styles.modeCard}
+            {MODES.map((mode, i) => {
+              const translateY = cardAnims[i].interpolate({
+                inputRange: [0, 1],
+                outputRange: [22, 0],
+              });
+              const isSelected = selected === mode.key;
+
+              return (
+                <Animated.View
+                  key={mode.key}
+                  style={{ opacity: cardAnims[i], transform: [{ translateY }] }}
                 >
-                  <LinearGradient
-                    colors={mode.colors}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={[
-                      styles.modeGradient,
-                      {
-                        borderColor:
-                          selected === mode.key
+                  <ScalePressable
+                    onPress={() => handleSelect(mode)}
+                    style={styles.modeCard}
+                    accessibilityLabel={`${mode.name}. ${mode.tagline}. ${
+                      mode.locked
+                        ? t("Krever Party Pass", "Requires Party Pass", "パーティーパスが必要")
+                        : t("Gratis", "Free", "無料")
+                    }`}
+                  >
+                    <LinearGradient
+                      colors={mode.colors}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={[
+                        styles.modeGradient,
+                        {
+                          borderColor: isSelected
                             ? mode.accent
                             : mode.locked
-                            ? "rgba(230,196,106,0.18)"
-                            : "rgba(255,255,255,0.08)",
-                      },
-                    ]}
-                  >
-                    <View style={[styles.iconFrame, { backgroundColor: mode.accent }]}>
-                      <Text style={styles.modeIcon}>{mode.icon}</Text>
-                    </View>
-
-                    <View style={styles.modeText}>
-                      <View style={styles.modeNameRow}>
-                        <Text style={styles.modeName}>{mode.name}</Text>
-
-                        {!mode.locked ? (
-                          <View style={[styles.freeBadge, { backgroundColor: `${mode.accent}22` }]}>
-                            <Text style={[styles.freeBadgeText, { color: mode.accent }]}>
-                              FREE
-                            </Text>
-                          </View>
-                        ) : (
-                          <View style={styles.proBadge}>
-                            <Text style={styles.proBadgeText}>PRO</Text>
-                          </View>
-                        )}
-                      </View>
-
-                      <Text style={[styles.modeTagline, { color: mode.accent }]} numberOfLines={1}>
-                        {mode.tagline}
-                      </Text>
-
-                      <Text style={styles.modeDesc} numberOfLines={2}>
-                        {mode.desc}
-                      </Text>
-                    </View>
-
-                    <View
-                      style={[
-                        styles.circleBtn,
-                        {
-                          backgroundColor: mode.locked
-                            ? "rgba(230,196,106,0.18)"
-                            : `${mode.accent}20`,
+                            ? "rgba(240,204,114,0.22)"
+                            : `${mode.accent}22`,
+                          borderWidth: isSelected ? 2 : 1,
                         },
                       ]}
                     >
-                      <Text
+                      <View
                         style={[
-                          styles.arrowTxt,
+                          styles.iconFrame,
                           {
-                            color: mode.locked ? "#E6C46A" : "#fff",
+                            backgroundColor: `${mode.accent}26`,
+                            borderColor: `${mode.accent}55`,
                           },
                         ]}
                       >
-                        {mode.locked ? "🔒" : "→"}
-                      </Text>
-                    </View>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </Animated.View>
-            ))}
+                        <Text style={styles.modeIcon}>{mode.icon}</Text>
+                      </View>
+
+                      <View style={styles.modeText}>
+                        <View style={styles.modeNameRow}>
+                          <Text style={styles.modeName} numberOfLines={1}>
+                            {mode.name}
+                          </Text>
+
+                          {!mode.locked ? (
+                            <View
+                              style={[styles.freeBadge, { backgroundColor: `${mode.accent}20`, borderColor: `${mode.accent}45` }]}
+                            >
+                              <Text style={[styles.freeBadgeText, { color: mode.accent }]}>
+                                FREE
+                              </Text>
+                            </View>
+                          ) : (
+                            <View style={styles.proBadge}>
+                              <Text style={styles.proBadgeText}>PRO</Text>
+                            </View>
+                          )}
+                        </View>
+
+                        <Text style={[styles.modeTagline, { color: mode.accent }]} numberOfLines={1}>
+                          {mode.tagline}
+                        </Text>
+
+                        <Text style={styles.modeDesc} numberOfLines={2}>
+                          {mode.desc}
+                        </Text>
+
+                        <IntensityMeter level={mode.intensity} accent={mode.accent} />
+                      </View>
+
+                      <View
+                        style={[
+                          styles.circleBtn,
+                          {
+                            backgroundColor: mode.locked
+                              ? "rgba(240,204,114,0.16)"
+                              : `${mode.accent}1E`,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.arrowTxt,
+                            { color: mode.locked ? "#F0CC72" : mode.accent },
+                          ]}
+                        >
+                          {mode.locked ? "🔒" : "→"}
+                        </Text>
+                      </View>
+                    </LinearGradient>
+                  </ScalePressable>
+                </Animated.View>
+              );
+            })}
           </View>
         </Animated.View>
       </ScrollView>
 
-      <TouchableOpacity activeOpacity={0.9} style={styles.buyProFloating} onPress={handleBuyPro}>
-        <LinearGradient
-          colors={["#F8D879", "#D89B25", "#8A5A10"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.buyProGradient}
+      {/* ---------- Flytende PRO-knapp ---------- */}
+      <Animated.View style={[styles.buyProFloating, { transform: [{ scale: proScale }] }]}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={handleBuyPro}
+          accessibilityRole="button"
+          accessibilityLabel={t("Kjøp Party Pass", "Buy Party Pass", "パーティーパスを購入")}
         >
-          <Text style={styles.buyProText}>👑 BUY PARTY PASS</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+          <LinearGradient
+            colors={["#F8D879", "#D89B25", "#8A5A10"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.buyProGradient}
+          >
+            <Text style={styles.buyProText}>
+              👑 {t("KJØP PARTY PASS", "BUY PARTY PASS", "パーティーパスを購入")}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#050711",
-  },
+  container: { flex: 1, backgroundColor: "#050711" },
 
+  /* ---------- Bakgrunn ---------- */
   redBlob: {
     position: "absolute",
     top: -130,
@@ -391,14 +483,13 @@ const styles = StyleSheet.create({
     width: width * 1.15,
     height: width * 1.15,
     borderRadius: width,
-    backgroundColor: "rgba(255, 69, 105, 0.42)",
+    backgroundColor: "rgba(255, 69, 105, 0.34)",
     shadowColor: "#FF4569",
     shadowOpacity: 1,
     shadowRadius: 90,
     shadowOffset: { width: 0, height: 0 },
     elevation: 20,
   },
-
   purpleBlob: {
     position: "absolute",
     top: 160,
@@ -406,220 +497,184 @@ const styles = StyleSheet.create({
     width: width * 1.2,
     height: width * 1.2,
     borderRadius: width,
-    backgroundColor: "rgba(126, 45, 255, 0.34)",
+    backgroundColor: "rgba(126, 45, 255, 0.26)",
     shadowColor: "#7E2DFF",
     shadowOpacity: 1,
     shadowRadius: 100,
     shadowOffset: { width: 0, height: 0 },
     elevation: 20,
   },
-
   darkFade: {
     position: "absolute",
-    top: height * 0.36,
+    top: height * 0.34,
     left: 0,
     right: 0,
-    height: height * 0.45,
+    height: height * 0.47,
   },
 
-  scroll: {
-    paddingTop: 56,
-    paddingHorizontal: 22,
-    paddingBottom: 122,
-  },
+  scroll: { paddingTop: 56, paddingHorizontal: 20, paddingBottom: 130 },
 
+  /* ---------- Toppbar ---------- */
   topBar: {
-    height: 52,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 54,
+    marginBottom: 36,
   },
-
   backBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.09)",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "rgba(255,255,255,0.08)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.13)",
+    borderColor: "rgba(255,255,255,0.14)",
     alignItems: "center",
     justifyContent: "center",
   },
-
-  backText: {
-    color: "#fff",
-    fontSize: 26,
-    fontWeight: "900",
-    marginTop: -2,
-  },
-
+  backText: { color: "#fff", fontSize: 25, fontWeight: "900", marginTop: -2 },
   gameChip: {
-    height: 52,
-    maxWidth: width * 0.68,
-    paddingLeft: 15,
-    paddingRight: 18,
-    borderRadius: 30,
-    backgroundColor: "rgba(6, 8, 20, 0.88)",
+    height: 50,
+    maxWidth: width * 0.66,
+    paddingLeft: 14,
+    paddingRight: 17,
+    borderRadius: 28,
+    backgroundColor: "rgba(8, 10, 24, 0.85)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
     flexDirection: "row",
     alignItems: "center",
   },
+  gameChipIcon: { fontSize: 21, marginRight: 9 },
+  gameChipName: { color: "#fff", fontSize: 14, fontWeight: "800", flexShrink: 1 },
 
-  gameChipIcon: {
-    fontSize: 22,
-    marginRight: 10,
-  },
-
-  gameChipName: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "900",
-  },
-
+  /* ---------- Header ---------- */
   header: {
-    minHeight: 245,
-    marginBottom: 28,
+    minHeight: 215,
+    marginBottom: 24,
     position: "relative",
     justifyContent: "flex-end",
   },
-
   eyebrow: {
-    color: "rgba(255,255,255,0.72)",
-    fontSize: 13,
+    color: "rgba(255,255,255,0.66)",
+    fontSize: 12.5,
     fontWeight: "900",
-    letterSpacing: 3.2,
-    marginBottom: 20,
+    letterSpacing: 3,
+    marginBottom: 16,
   },
-
   title: {
     color: "#fff",
-    fontSize: 45,
-    lineHeight: 51,
+    fontSize: 42,
+    lineHeight: 48,
     fontWeight: "900",
-    letterSpacing: -1.7,
+    letterSpacing: -1.6,
   },
-
   subtitle: {
-    marginTop: 18,
-    maxWidth: width * 0.7,
-    color: "rgba(255,255,255,0.63)",
+    marginTop: 14,
+    maxWidth: width * 0.68,
+    color: "rgba(255,255,255,0.66)",
     fontSize: 15,
     lineHeight: 21,
-    fontWeight: "800",
+    fontWeight: "700",
   },
+  headerIconWrap: { position: "absolute", right: -8, bottom: 14, zIndex: 1 },
+  headerIcon: { fontSize: 110, opacity: 0.92 },
 
-  headerIconWrap: {
-    position: "absolute",
-    right: -8,
-    bottom: 12,
-    zIndex: 1,
+  /* ---------- Skala-hint ---------- */
+  sectionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    gap: 12,
   },
-
-  headerIcon: {
-    fontSize: 118,
-    opacity: 0.92,
-  },
-
   sectionLabel: {
-    color: "rgba(255,255,255,0.48)",
-    fontSize: 13,
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 11.5,
     fontWeight: "900",
-    letterSpacing: 4,
-    marginBottom: 18,
+    letterSpacing: 2.6,
+  },
+  sectionScale: {
+    flex: 1,
+    height: 3,
+    borderRadius: 2,
+    opacity: 0.7,
   },
 
-  modeList: {
-    gap: 16,
-  },
-
+  /* ---------- Mode-kort ---------- */
+  modeList: { gap: 14 },
   modeCard: {
-    height: 104,
+    height: 116,
     borderRadius: 24,
     overflow: "hidden",
   },
-
   modeGradient: {
     flex: 1,
     borderRadius: 24,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
   },
-
   iconFrame: {
-    width: 58,
-    height: 58,
-    borderRadius: 17,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
+    marginRight: 14,
+    borderWidth: 1,
   },
-
-  modeIcon: {
-    fontSize: 28,
-  },
-
-  modeText: {
-    flex: 1,
-  },
-
-  modeNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
+  modeIcon: { fontSize: 27 },
+  modeText: { flex: 1 },
+  modeNameRow: { flexDirection: "row", alignItems: "center" },
   modeName: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 17.5,
     fontWeight: "900",
     letterSpacing: -0.3,
+    flexShrink: 1,
   },
-
-  freeBadge: {
-    marginLeft: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-
-  freeBadgeText: {
-    fontSize: 9,
-    fontWeight: "900",
-    letterSpacing: 1,
-  },
-
-  proBadge: {
-    marginLeft: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
-    backgroundColor: "rgba(230,196,106,0.26)",
-  },
-
-  proBadgeText: {
-    color: "#E6C46A",
-    fontSize: 9,
-    fontWeight: "900",
-    letterSpacing: 1,
-  },
-
-  modeTagline: {
-    fontSize: 12.5,
-    fontWeight: "900",
-    marginTop: 4,
-  },
-
+  modeTagline: { fontSize: 12.5, fontWeight: "800", marginTop: 3 },
   modeDesc: {
-    color: "rgba(255,255,255,0.48)",
+    color: "rgba(255,255,255,0.58)",
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: "600",
     lineHeight: 15,
     marginTop: 2,
   },
 
+  /* ---------- Intensitetsmåler ---------- */
+  meterRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 3,
+    marginTop: 7,
+    height: 13,
+  },
+  meterBar: {
+    width: 11,
+    borderRadius: 2,
+  },
+
+  /* ---------- Badges ---------- */
+  freeBadge: {
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  freeBadgeText: { fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  proBadge: {
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 999,
+    backgroundColor: "rgba(240,204,114,0.2)",
+    borderWidth: 1,
+    borderColor: "rgba(240,204,114,0.4)",
+  },
+  proBadgeText: { color: "#F0CC72", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+
+  /* ---------- Pil ---------- */
   circleBtn: {
     width: 42,
     height: 42,
@@ -628,38 +683,30 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginLeft: 10,
   },
+  arrowTxt: { fontSize: 24, fontWeight: "900", marginTop: -2 },
 
-  arrowTxt: {
-    fontSize: 27,
-    fontWeight: "900",
-    marginTop: -2,
-  },
-
+  /* ---------- PRO-knapp ---------- */
   buyProFloating: {
     position: "absolute",
-    left: 22,
-    right: 22,
-    bottom: 24,
-    height: 58,
-    borderRadius: 29,
-    overflow: "hidden",
+    left: 20,
+    right: 20,
+    bottom: 26,
     zIndex: 50,
+    borderRadius: 29,
     shadowColor: "#E6C46A",
-    shadowOpacity: 0.35,
-    shadowRadius: 18,
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
     shadowOffset: { width: 0, height: 8 },
     elevation: 12,
   },
-
   buyProGradient: {
-    flex: 1,
+    height: 58,
     borderRadius: 29,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.25)",
+    borderColor: "rgba(255,255,255,0.28)",
   },
-
   buyProText: {
     color: "#171006",
     fontSize: 15,
