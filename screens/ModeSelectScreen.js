@@ -75,7 +75,7 @@ const MODES = [
     colors: ["rgba(112, 52, 20, 0.9)", "rgba(24, 12, 8, 0.98)"],
     accent: "#FB923C",
     intensity: 4,
-    locked: true,
+    locked: false,
   },
   {
     key: "blasted",
@@ -90,7 +90,7 @@ const MODES = [
     colors: ["rgba(100, 22, 32, 0.92)", "rgba(24, 8, 11, 0.98)"],
     accent: "#FF6B6B",
     intensity: 5,
-    locked: true,
+    locked: false,
   },
 ];
 

@@ -1124,6 +1124,9 @@ const DARES = {
       "Gi den til høyre et kompliment de aldri har fått",
       "Beskriv kvelden din som en romantisk film",
       "Send en 'tenker på deg' melding til noen spesiell",
+      "7 minutes in paradise - Om dere er ute, gjør det på et toalett",
+      "Spander neste drink på daten din",
+
     ],
     en: [
       "Say the sweetest thing you can to the person to your left",
