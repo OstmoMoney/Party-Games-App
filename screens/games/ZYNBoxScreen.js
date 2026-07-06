@@ -10,6 +10,13 @@ import {
   StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import {
+  MidnightBackground,
+  GlassCard,
+  MODE_THEME,
+  COLORS,
+  FONT,
+} from "../../components/MidnightUI";
 
 const { width, height } = Dimensions.get("window");
 
@@ -808,42 +815,11 @@ const STATEMENTS = {
   },
 };
 
-const MODE_STYLE = {
-  chill: {
-    color: "#25D98A",
-    soft: "rgba(37,217,138,0.22)",
-    bg: ["#101A16", "#07100D", "#050711"],
-    emoji: "😊",
-    label: "Chill",
-  },
-  date: {
-    color: "#EC4899",
-    soft: "rgba(236,72,153,0.22)",
-    bg: ["#1A0A14", "#100609", "#050711"],
-    emoji: "💕",
-    label: "Date",
-  },
-  drunk: {
-    color: "#4F7BFF",
-    soft: "rgba(79,123,255,0.22)",
-    bg: ["#10162A", "#080B19", "#050711"],
-    emoji: "🍻",
-    label: "Drunk",
-  },
-  nasj: {
-    color: "#FB923C",
-    soft: "rgba(251,146,60,0.22)",
-    bg: ["#24160D", "#100A08", "#050711"],
-    emoji: "🔥",
-    label: "Nasj",
-  },
-  blasted: {
-    color: "#F87171",
-    soft: "rgba(248,113,113,0.22)",
-    bg: ["#241012", "#100709", "#050711"],
-    emoji: "💀",
-    label: "Blasted",
-  },
+// Waterfall-regelen gjelder i alle modes: personen til venstre og høyre
+// for deg må alltid drikke når du får snusboksen igjen.
+const WATERFALL = {
+  no: "WATERFALL! Fra nå av: hver gang du får snusboksen, må personen til venstre og høyre for deg drikke",
+  en: "WATERFALL! From now on: every time you get the box, the person to your left and right must drink",
 };
 
 const shuffle = (arr) => {
@@ -857,13 +833,14 @@ const shuffle = (arr) => {
 
 export default function ZYNBoxScreen({ navigation, route }) {
   const mode = route?.params?.mode || "chill";
-  const style = MODE_STYLE[mode] || MODE_STYLE.chill;
+  const style = MODE_THEME[mode] || MODE_THEME.chill;
 
   const createDeck = () => {
     const lang = t("no", "en", "en");
     const modeStatements = STATEMENTS[mode];
     const statements = modeStatements?.[lang] || modeStatements?.no || [];
-    return shuffle(statements);
+    // Waterfall er med i alle modes — én gang per runde
+    return shuffle([...statements, WATERFALL[lang] || WATERFALL.en]);
   };
 
   const [deck, setDeck] = useState(createDeck);
@@ -933,9 +910,7 @@ export default function ZYNBoxScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={style.bg} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} />
-      <View style={[styles.glowBlob, { backgroundColor: style.soft }]} />
-      <LinearGradient colors={["rgba(5,7,17,0)", "#050711"]} style={styles.fadeBottom} />
+      <MidnightBackground glowColor={style.color} />
 
       {!done ? (
         <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
@@ -943,7 +918,7 @@ export default function ZYNBoxScreen({ navigation, route }) {
             <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
               <Text style={styles.backText}>←</Text>
             </TouchableOpacity>
-            <View style={[styles.modePill, { borderColor: `${style.color}40` }]}>
+            <View style={styles.modePill}>
               <Text style={styles.modeEmoji}>{style.emoji}</Text>
               <Text style={[styles.modeText, { color: style.color }]}>{style.label}</Text>
             </View>
@@ -953,26 +928,29 @@ export default function ZYNBoxScreen({ navigation, route }) {
           </View>
 
           <View style={styles.hero}>
-            <Text style={styles.heroEyebrow}>ZYN BOX</Text>
-            <Text style={styles.heroTitle}>Throw{"\n"}the box</Text>
+            <Text style={styles.heroEyebrow}>{lang === "no" ? "SNUSLEKEN" : "ZYN BOX"}</Text>
+            <View style={styles.heroTitleRow}>
+              <Text style={styles.heroTitle}>{lang === "no" ? "Kast boksen" : "Throw the box"}</Text>
+              <Animated.Text style={[styles.heroEmoji, { transform: [{ translateY: floatY }] }]}>
+                📦
+              </Animated.Text>
+            </View>
             <Text style={styles.heroSub}>{heroSubText}</Text>
-            <Animated.View style={[styles.heroEmojiWrap, { transform: [{ translateY: floatY }, { rotate: "-8deg" }] }]}>
-              <Text style={styles.heroEmoji}>📦</Text>
-            </Animated.View>
           </View>
 
           <View style={styles.cardArea}>
-            <View style={[styles.cardBack, { borderColor: `${style.color}18` }]} />
-            <Animated.View style={[styles.card, { opacity: cardOpacity, transform: [{ translateY: cardTranslate }], borderColor: `${style.color}28` }]}>
-              <View style={[styles.cardLine, { backgroundColor: style.color }]} />
-              <Text style={[styles.cardLabel, { color: style.color }]}>{cardLabelText}</Text>
-              <Text style={styles.statementText}>{deck[index]}</Text>
+            <Animated.View style={{ opacity: cardOpacity, transform: [{ translateY: cardTranslate }] }}>
+              <GlassCard radius={28} contentStyle={styles.cardContent}>
+                <View style={[styles.cardAccentBar, { backgroundColor: style.color }]} />
+                <Text style={[styles.cardLabel, { color: style.color }]}>{cardLabelText}</Text>
+                <Text style={styles.statementText}>{deck[index]}</Text>
+              </GlassCard>
             </Animated.View>
           </View>
 
           <View style={styles.bottomWrap}>
             <TouchableOpacity activeOpacity={0.9} style={styles.throwBtn} onPress={nextCard}>
-              <LinearGradient colors={[style.color, "#B92BFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.throwGradient}>
+              <LinearGradient colors={style.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.throwGradient}>
                 <Text style={styles.throwText}>{throwBtnText}</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -980,16 +958,18 @@ export default function ZYNBoxScreen({ navigation, route }) {
         </Animated.View>
       ) : (
         <View style={styles.doneWrap}>
-          <Animated.View style={[styles.doneEmojiWrap, { transform: [{ translateY: floatY }, { rotate: "-8deg" }] }]}>
-            <Text style={styles.doneEmoji}>📦</Text>
+          <Animated.View style={{ transform: [{ translateY: floatY }] }}>
+            <View style={[styles.doneEmojiWrap, { borderColor: `${style.color}4D`, backgroundColor: `${style.color}24` }]}>
+              <Text style={styles.doneEmoji}>📦</Text>
+            </View>
           </Animated.View>
-          <Text style={styles.doneTitle}>Box empty!</Text>
+          <Text style={styles.doneTitle}>{lang === "no" ? "Boksen er tom!" : "Box empty!"}</Text>
           <Text style={styles.doneSub}>
             {doneSubText}{"\n"}
-            <Text style={{ color: style.color, fontWeight: "900" }}>{deck.length} {questionsText}</Text>
+            <Text style={[styles.doneHighlight, { color: style.color }]}>{deck.length} {questionsText}</Text>
           </Text>
           <TouchableOpacity activeOpacity={0.9} style={styles.restartBtn} onPress={restart}>
-            <LinearGradient colors={[style.color, "#B92BFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.restartGradient}>
+            <LinearGradient colors={style.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.restartGradient}>
               <Text style={styles.restartText}>{restartText}</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -1003,42 +983,50 @@ export default function ZYNBoxScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#050711" },
-  glowBlob: { position: "absolute", top: -170, right: -170, width: width * 1.15, height: width * 1.15, borderRadius: 999 },
-  fadeBottom: { position: "absolute", top: height * 0.35, left: 0, right: 0, height: height * 0.6 },
-  inner: { flex: 1, paddingTop: 58, paddingHorizontal: 22, paddingBottom: 40 },
-  topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 22 },
-  backBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
-  backText: { color: "#fff", fontSize: 22, fontWeight: "900" },
-  modePill: { height: 50, paddingHorizontal: 16, borderRadius: 25, backgroundColor: "rgba(8,11,25,0.8)", borderWidth: 1, flexDirection: "row", alignItems: "center" },
-  modeEmoji: { fontSize: 16, marginRight: 8 },
-  modeText: { fontSize: 13, fontWeight: "900" },
-  counter: { height: 50, minWidth: 50, borderRadius: 25, backgroundColor: "rgba(8,11,25,0.8)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
-  counterText: { fontSize: 12, fontWeight: "900" },
-  hero: { minHeight: 220, justifyContent: "flex-end", marginBottom: 26 },
-  heroEyebrow: { color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: "900", letterSpacing: 3, marginBottom: 16 },
-  heroTitle: { color: "#fff", fontSize: 48, lineHeight: 52, fontWeight: "900", letterSpacing: -2 },
-  heroSub: { marginTop: 18, color: "rgba(255,255,255,0.58)", fontSize: 15, lineHeight: 22, fontWeight: "700", width: width * 0.7 },
-  heroEmojiWrap: { position: "absolute", right: -8, bottom: 8 },
-  heroEmoji: { fontSize: 110 },
+  container: { flex: 1, backgroundColor: COLORS.bg },
+  inner: { flex: 1, paddingTop: 72, paddingHorizontal: 24, paddingBottom: 36 },
+
+  /* ---------- Toppbar ---------- */
+  topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 24 },
+  backBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: "rgba(255,255,255,0.07)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" },
+  backText: { color: COLORS.text, fontSize: 20, marginTop: -1 },
+  modePill: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(255,255,255,0.07)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", borderRadius: 999, paddingVertical: 9, paddingHorizontal: 16 },
+  modeEmoji: { fontSize: 15 },
+  modeText: { fontFamily: FONT.bold, fontSize: 14 },
+  counter: { backgroundColor: "rgba(255,255,255,0.07)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", borderRadius: 999, paddingVertical: 9, paddingHorizontal: 14 },
+  counterText: { fontFamily: FONT.bold, fontSize: 13 },
+
+  /* ---------- Hero ---------- */
+  hero: { marginBottom: 20 },
+  heroEyebrow: { fontFamily: FONT.label, fontSize: 11, letterSpacing: 3, color: COLORS.text50 },
+  heroTitleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginTop: 10, gap: 12 },
+  heroTitle: { flex: 1, fontFamily: FONT.extra, fontSize: 38, lineHeight: 40, letterSpacing: -1, color: COLORS.text },
+  heroEmoji: { fontSize: 40, lineHeight: 44 },
+  heroSub: { marginTop: 10, maxWidth: width * 0.8, fontFamily: FONT.regular, fontSize: 14, lineHeight: 20, color: COLORS.text60 },
+
+  /* ---------- Kort ---------- */
   cardArea: { flex: 1, justifyContent: "center" },
-  cardBack: { position: "absolute", left: 12, right: 12, top: 20, bottom: 0, borderRadius: 32, backgroundColor: "rgba(255,255,255,0.03)", borderWidth: 1, transform: [{ rotate: "-2deg" }] },
-  card: { minHeight: 280, borderRadius: 32, backgroundColor: "rgba(8,11,25,0.82)", borderWidth: 1, paddingHorizontal: 24, paddingVertical: 30, justifyContent: "center", overflow: "hidden" },
-  cardLine: { position: "absolute", top: 0, left: 0, right: 0, height: 4 },
-  cardLabel: { textAlign: "center", fontSize: 11, fontWeight: "900", letterSpacing: 2.5, marginBottom: 22 },
-  statementText: { color: "#fff", textAlign: "center", fontSize: 30, lineHeight: 40, fontWeight: "900", letterSpacing: -1 },
+  cardContent: { minHeight: 260, paddingHorizontal: 24, paddingVertical: 30, alignItems: "center", justifyContent: "center" },
+  cardAccentBar: { width: 36, height: 4, borderRadius: 2, marginBottom: 18 },
+  cardLabel: { textAlign: "center", fontFamily: FONT.label, fontSize: 11, letterSpacing: 3, marginBottom: 16 },
+  statementText: { color: COLORS.text, textAlign: "center", fontFamily: FONT.extra, fontSize: 27, lineHeight: 35, letterSpacing: -0.5 },
+
+  /* ---------- Knapp ---------- */
   bottomWrap: { paddingTop: 20 },
-  throwBtn: { height: 62, borderRadius: 22, overflow: "hidden" },
-  throwGradient: { flex: 1, borderRadius: 22, alignItems: "center", justifyContent: "center" },
-  throwText: { color: "#fff", fontSize: 15, fontWeight: "900", letterSpacing: 1.2 },
+  throwBtn: { borderRadius: 16, overflow: "hidden" },
+  throwGradient: { paddingVertical: 17, alignItems: "center", justifyContent: "center" },
+  throwText: { color: COLORS.text, fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2 },
+
+  /* ---------- Ferdig ---------- */
   doneWrap: { flex: 1, paddingHorizontal: 24, justifyContent: "center", alignItems: "center" },
-  doneEmojiWrap: { width: 120, height: 120, borderRadius: 36, backgroundColor: "rgba(8,11,25,0.82)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", marginBottom: 24 },
-  doneEmoji: { fontSize: 70 },
-  doneTitle: { color: "#fff", fontSize: 40, fontWeight: "900", letterSpacing: -1.5, marginBottom: 12 },
-  doneSub: { textAlign: "center", color: "rgba(255,255,255,0.55)", fontSize: 16, lineHeight: 24, marginBottom: 32 },
-  restartBtn: { width: "100%", height: 60, borderRadius: 22, overflow: "hidden", marginBottom: 14 },
-  restartGradient: { flex: 1, borderRadius: 22, alignItems: "center", justifyContent: "center" },
-  restartText: { color: "#fff", fontSize: 15, fontWeight: "900", letterSpacing: 1.2 },
+  doneEmojiWrap: { width: 110, height: 110, borderRadius: 32, borderWidth: 1, alignItems: "center", justifyContent: "center", marginBottom: 24 },
+  doneEmoji: { fontSize: 60 },
+  doneTitle: { color: COLORS.text, fontFamily: FONT.extra, fontSize: 36, letterSpacing: -1, marginBottom: 12 },
+  doneSub: { textAlign: "center", fontFamily: FONT.regular, fontSize: 16, lineHeight: 24, color: COLORS.text55, marginBottom: 32 },
+  doneHighlight: { fontFamily: FONT.extra },
+  restartBtn: { width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: 14 },
+  restartGradient: { borderRadius: 16, paddingVertical: 17, alignItems: "center", justifyContent: "center" },
+  restartText: { color: COLORS.text, fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2 },
   homeBtn: { paddingVertical: 12 },
-  homeBtnText: { color: "rgba(255,255,255,0.4)", fontSize: 14, fontWeight: "700" },
+  homeBtnText: { fontFamily: FONT.semi, fontSize: 14, color: COLORS.text40 },
 });

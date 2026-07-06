@@ -6,6 +6,12 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { t } from "../../i18n";
+import {
+  MidnightBackground,
+  MODE_THEME,
+  COLORS,
+  FONT,
+} from "../../components/MidnightUI";
 
 const { width, height } = Dimensions.get("window");
 
@@ -1759,14 +1765,6 @@ const DARES = {
   },
 };
 
-const MODE_STYLE = {
-  chill:   { color: "#4ade80", bg: ["#080f0a", "#0a1a0e"], label: "Chill",   emoji: "😊" },
-  date:    { color: "#EC4899", bg: ["#1A0A14", "#100609"], label: "Date",    emoji: "💕" },
-  drunk:   { color: "#60a5fa", bg: ["#080f1a", "#0a1830"], label: "Drunk",   emoji: "🍻" },
-  nasj:    { color: "#fb923c", bg: ["#140a04", "#241208"], label: "Nasj",    emoji: "🔥" },
-  blasted: { color: "#f87171", bg: ["#140606", "#240a0a"], label: "Blasted", emoji: "💀" },
-};
-
 function Bottle({ color }) {
   return (
     <View style={styles.bottleContainer}>
@@ -1786,7 +1784,7 @@ function Bottle({ color }) {
 export default function SpinTheBottleScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
   const mode = route?.params?.mode || "chill";
-  const style = MODE_STYLE[mode] || MODE_STYLE.chill;
+  const style = MODE_THEME[mode] || MODE_THEME.chill;
 
   const lang = t("no", "en", "en");
   const truths = TRUTHS[mode]?.[lang] || TRUTHS[mode]?.no || TRUTHS.chill.no;
@@ -1866,7 +1864,7 @@ export default function SpinTheBottleScreen({ navigation, route }) {
     outputRange: ["0deg", "360deg"],
   });
 
-  const setupTitle = lang === "no" ? "🍾 Spin the Bottle" : "🍾 Spin the Bottle";
+  const setupTitle = lang === "no" ? "🍾 Flasketuten peker på" : "🍾 Spin the Bottle";
   const setupDesc = lang === "no"
     ? "Snurr flasken — den det peker på må svare en sannhet eller gjøre en nøtt!"
     : "Spin the bottle — whoever it points to must answer a truth or do a dare!";
@@ -1888,18 +1886,17 @@ export default function SpinTheBottleScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={style.bg} style={StyleSheet.absoluteFill} />
-      <View style={[styles.glowTop, { backgroundColor: style.color }]} />
+      <MidnightBackground glowColor={style.color} />
 
       <Animated.View style={[styles.topBar, { opacity: fadeAnim }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
-        <View style={[styles.modePill, { backgroundColor: style.color + "22", borderColor: style.color + "55" }]}>
+        <View style={styles.modePill}>
           <Text style={styles.modeEmoji}>{style.emoji}</Text>
           <Text style={[styles.modeLabel, { color: style.color }]}>{style.label}</Text>
         </View>
-        <View style={{ width: 40 }} />
+        <View style={{ width: 42 }} />
       </Animated.View>
 
       {phase === "setup" && (
@@ -1911,7 +1908,7 @@ export default function SpinTheBottleScreen({ navigation, route }) {
 
             {players.map((p, i) => (
               <View key={i} style={styles.inputRow}>
-                <View style={[styles.inputNum, { backgroundColor: style.color + "22" }]}>
+                <View style={[styles.inputNum, { backgroundColor: style.color + "24", borderColor: style.color + "4D" }]}>
                   <Text style={[styles.inputNumText, { color: style.color }]}>{i + 1}</Text>
                 </View>
                 <TextInput
@@ -1947,11 +1944,18 @@ export default function SpinTheBottleScreen({ navigation, route }) {
             )}
 
             <TouchableOpacity
-              style={[styles.startBtn, { backgroundColor: style.color }, activePlayers.length < 2 && { opacity: 0.4 }]}
+              style={[styles.startBtn, activePlayers.length < 2 && { opacity: 0.5 }]}
               onPress={startGame}
               activeOpacity={0.85}
             >
-              <Text style={styles.startBtnText}>{startBtnText}</Text>
+              <LinearGradient
+                colors={style.gradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.startGradient}
+              >
+                <Text style={styles.startBtnText}>{startBtnText}</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </ScrollView>
         </Animated.View>
@@ -2024,19 +2028,22 @@ export default function SpinTheBottleScreen({ navigation, route }) {
               </>
             ) : (
               <>
-                <View style={[styles.challengeTypeBadge, { backgroundColor: style.color + "22" }]}>
+                <View style={[styles.challengeTypeBadge, { borderColor: style.color + "80" }]}>
                   <Text style={[styles.challengeTypeText, { color: style.color }]}>
                     {challengeType === "truth" ? truthBadge : dareBadge}
                   </Text>
                 </View>
                 <Text style={styles.modalWinner}>{winner}</Text>
                 <Text style={styles.challengeText}>{challenge}</Text>
-                <TouchableOpacity
-                  style={[styles.closeBtn, { backgroundColor: style.color }]}
-                  onPress={closeModal}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.closeBtnText}>{nextRoundText}</Text>
+                <TouchableOpacity style={styles.closeBtn} onPress={closeModal} activeOpacity={0.85}>
+                  <LinearGradient
+                    colors={style.gradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.closeGradient}
+                  >
+                    <Text style={styles.closeBtnText}>{nextRoundText}</Text>
+                  </LinearGradient>
                 </TouchableOpacity>
               </>
             )}
@@ -2048,53 +2055,55 @@ export default function SpinTheBottleScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  glowTop: {
-    position: "absolute", top: -100, left: width / 2 - 130,
-    width: 260, height: 260, borderRadius: 130, opacity: 0.1,
-  },
+  container: { flex: 1, backgroundColor: COLORS.bg },
   topBar: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12,
+    paddingHorizontal: 24, paddingTop: 72, paddingBottom: 16,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 42, height: 42, borderRadius: 21,
     backgroundColor: "rgba(255,255,255,0.07)",
-    borderWidth: 0.5, borderColor: "rgba(255,255,255,0.12)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.14)",
     alignItems: "center", justifyContent: "center",
   },
-  backText: { color: "#fff", fontSize: 18 },
+  backText: { color: COLORS.text, fontSize: 20, marginTop: -1 },
   modePill: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 999, borderWidth: 1,
+    flexDirection: "row", alignItems: "center", gap: 8,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.14)",
+    borderRadius: 999, paddingVertical: 9, paddingHorizontal: 16,
   },
   modeEmoji: { fontSize: 15 },
-  modeLabel: { fontSize: 13, fontWeight: "800" },
+  modeLabel: { fontFamily: FONT.bold, fontSize: 14 },
   setupWrap: { flex: 1 },
-  setupScroll: { paddingHorizontal: 20, paddingBottom: 50 },
-  setupTitle: { color: "#fff", fontSize: 28, fontWeight: "900", marginBottom: 8 },
-  setupDesc: { color: "rgba(255,255,255,0.4)", fontSize: 14, lineHeight: 20, marginBottom: 24 },
-  sectionLabel: { fontSize: 11, fontWeight: "700", letterSpacing: 2, color: "rgba(255,255,255,0.25)", marginBottom: 12 },
+  setupScroll: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 50 },
+  setupTitle: { color: COLORS.text, fontFamily: FONT.extra, fontSize: 30, letterSpacing: -1, marginBottom: 8 },
+  setupDesc: { fontFamily: FONT.regular, color: COLORS.text60, fontSize: 14, lineHeight: 20, marginBottom: 24 },
+  sectionLabel: { fontFamily: FONT.label, fontSize: 11, letterSpacing: 3, color: COLORS.text50, marginBottom: 12 },
   inputRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
-  inputNum: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  inputNumText: { fontWeight: "900", fontSize: 14 },
+  inputNum: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  inputNumText: { fontFamily: FONT.bold, fontSize: 15 },
   input: {
-    flex: 1, backgroundColor: "rgba(255,255,255,0.07)",
-    borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
-    color: "#fff", fontSize: 15, fontWeight: "600",
-    paddingHorizontal: 14, paddingVertical: 13,
+    flex: 1, backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)",
+    color: COLORS.text, fontFamily: FONT.medium, fontSize: 15,
+    paddingHorizontal: 16, paddingVertical: 14,
   },
   removeBtn: {
-    width: 32, height: 32, borderRadius: 10,
+    width: 36, height: 36, borderRadius: 18,
     backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.12)",
     alignItems: "center", justifyContent: "center",
   },
-  removeBtnText: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
-  addBtn: { paddingVertical: 14, alignItems: "center", borderRadius: 14, borderWidth: 1, marginBottom: 16 },
-  addBtnText: { fontSize: 14, fontWeight: "800" },
-  startBtn: { borderRadius: 18, paddingVertical: 18, alignItems: "center" },
-  startBtnText: { color: "#0B0B14", fontSize: 16, fontWeight: "900" },
+  removeBtnText: { color: COLORS.text45, fontSize: 14 },
+  addBtn: {
+    paddingVertical: 16, alignItems: "center", borderRadius: 16, borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(255,255,255,0.05)", marginBottom: 16,
+  },
+  addBtnText: { fontFamily: FONT.bold, fontSize: 14, letterSpacing: 0.5 },
+  startBtn: { borderRadius: 16, overflow: "hidden" },
+  startGradient: { paddingVertical: 17, alignItems: "center", justifyContent: "center" },
+  startBtnText: { color: COLORS.text, fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2 },
   playWrap: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 20 },
   circleArea: {
     width: BOTTLE_SIZE + RADIUS * 2, height: BOTTLE_SIZE + RADIUS * 2,
@@ -2105,8 +2114,8 @@ const styles = StyleSheet.create({
     width: 44, height: 44, borderRadius: 22,
     alignItems: "center", justifyContent: "center", borderWidth: 1, marginBottom: 4,
   },
-  playerDotInitial: { fontSize: 16, fontWeight: "900" },
-  playerDotName: { color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: "700", maxWidth: 60, textAlign: "center" },
+  playerDotInitial: { fontFamily: FONT.extra, fontSize: 16 },
+  playerDotName: { color: COLORS.text60, fontFamily: FONT.semi, fontSize: 10, maxWidth: 60, textAlign: "center" },
   bottleWrap: { position: "absolute", width: 80, height: 160, alignItems: "center" },
   bottleContainer: { width: 40, height: 140, alignItems: "center" },
   bottleCork: { width: 12, height: 10, borderRadius: 3, marginBottom: 0 },
@@ -2123,29 +2132,34 @@ const styles = StyleSheet.create({
     width: 22, height: 22, borderRadius: 4, borderWidth: 1,
     alignItems: "center", justifyContent: "center", marginLeft: 6,
   },
-  bottleLabelText: { fontSize: 11, fontWeight: "900" },
+  bottleLabelText: { fontFamily: FONT.black, fontSize: 11 },
   bottleBase: { width: 36, height: 8, borderRadius: 4, borderWidth: 1.5, marginTop: -2 },
-  spinBtn: { width: "100%", borderRadius: 20, borderWidth: 1.5, paddingVertical: 18, alignItems: "center", marginBottom: 12 },
-  spinBtnText: { fontSize: 20, fontWeight: "900", letterSpacing: 1 },
+  spinBtn: {
+    width: "100%", borderRadius: 16, borderWidth: 1.5,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    paddingVertical: 17, alignItems: "center", marginBottom: 12,
+  },
+  spinBtnText: { fontFamily: FONT.extra, fontSize: 19, letterSpacing: 2 },
   resetBtn: { paddingVertical: 10 },
-  resetBtnText: { color: "rgba(255,255,255,0.25)", fontSize: 13 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "center", alignItems: "center" },
+  resetBtnText: { color: COLORS.text40, fontFamily: FONT.semi, fontSize: 13 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(13,10,24,0.85)", justifyContent: "center", alignItems: "center" },
   modalCard: {
-    width: width - 48, backgroundColor: "#13131F",
+    width: width - 48, backgroundColor: "#171225",
     borderRadius: 28, padding: 28,
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.12)",
     overflow: "hidden", alignItems: "center",
   },
-  modalAccent: { position: "absolute", top: 0, left: 0, right: 0, height: 3 },
-  modalWinner: { color: "#fff", fontSize: 28, fontWeight: "900", marginBottom: 8, textAlign: "center" },
-  modalSub: { color: "rgba(255,255,255,0.4)", fontSize: 14, marginBottom: 20 },
+  modalAccent: { width: 36, height: 4, borderRadius: 2, marginBottom: 16 },
+  modalWinner: { color: COLORS.text, fontFamily: FONT.extra, fontSize: 28, letterSpacing: -0.5, marginBottom: 8, textAlign: "center" },
+  modalSub: { fontFamily: FONT.regular, color: COLORS.text55, fontSize: 14, marginBottom: 20 },
   modalBtns: { flexDirection: "row", gap: 12, width: "100%" },
   modalBtn: { flex: 1, borderRadius: 16, borderWidth: 1, paddingVertical: 18, alignItems: "center" },
-  modalBtnIcon: { fontSize: 28, marginBottom: 6 },
-  modalBtnText: { fontSize: 15, fontWeight: "900" },
-  challengeTypeBadge: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999, marginBottom: 14 },
-  challengeTypeText: { fontSize: 12, fontWeight: "800", letterSpacing: 1 },
-  challengeText: { color: "#fff", fontSize: 20, fontWeight: "800", textAlign: "center", lineHeight: 28, marginBottom: 24 },
-  closeBtn: { width: "100%", borderRadius: 16, paddingVertical: 16, alignItems: "center" },
-  closeBtnText: { color: "#0B0B14", fontSize: 15, fontWeight: "900" },
+  modalBtnIcon: { fontSize: 26, marginBottom: 6 },
+  modalBtnText: { fontFamily: FONT.bold, fontSize: 15 },
+  challengeTypeBadge: { borderWidth: 1, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, marginBottom: 14 },
+  challengeTypeText: { fontFamily: FONT.label, fontSize: 11, letterSpacing: 1.5 },
+  challengeText: { color: COLORS.text, fontFamily: FONT.extra, fontSize: 20, textAlign: "center", lineHeight: 27, marginBottom: 24 },
+  closeBtn: { width: "100%", borderRadius: 16, overflow: "hidden" },
+  closeGradient: { paddingVertical: 16, alignItems: "center", justifyContent: "center" },
+  closeBtnText: { color: COLORS.text, fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2 },
 });

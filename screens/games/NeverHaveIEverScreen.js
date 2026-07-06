@@ -10,6 +10,13 @@ import {
   StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import {
+  MidnightBackground,
+  GlassCard,
+  MODE_THEME,
+  COLORS,
+  FONT,
+} from "../../components/MidnightUI";
 
 const { width, height } = Dimensions.get("window");
 
@@ -607,44 +614,6 @@ const QUESTIONS = {
   },
 };
 
-const MODE_STYLE = {
-  chill: {
-    color: "#25D98A",
-    soft: "rgba(37,217,138,0.22)",
-    bg: ["#101A16", "#07100D", "#050711"],
-    label: "Chill",
-    emoji: "😊",
-  },
-  date: {
-    color: "#EC4899",
-    soft: "rgba(236,72,153,0.22)",
-    bg: ["#1A0A14", "#100609", "#050711"],
-    label: "Date",
-    emoji: "💕",
-  },
-  drunk: {
-    color: "#4F7BFF",
-    soft: "rgba(79,123,255,0.22)",
-    bg: ["#10162A", "#080B19", "#050711"],
-    label: "Drunk",
-    emoji: "🍻",
-  },
-  nasj: {
-    color: "#FB923C",
-    soft: "rgba(251,146,60,0.22)",
-    bg: ["#24160D", "#100A08", "#050711"],
-    label: "Nasj",
-    emoji: "🔥",
-  },
-  blasted: {
-    color: "#F87171",
-    soft: "rgba(248,113,113,0.22)",
-    bg: ["#241012", "#100709", "#050711"],
-    label: "Blasted",
-    emoji: "💀",
-  },
-};
-
 const shuffle = (arr) => {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i -= 1) {
@@ -663,7 +632,7 @@ const cleanQuestion = (question) => {
 export default function NeverHaveIEverScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
   const mode = route?.params?.mode || "chill";
-  const style = MODE_STYLE[mode] || MODE_STYLE.chill;
+  const style = MODE_THEME[mode] || MODE_THEME.chill;
 
   const createDeck = () => {
     const lang = t("no", "en", "en");
@@ -790,12 +759,12 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
-        <LinearGradient colors={style.bg} locations={[0, 0.48, 1]} style={StyleSheet.absoluteFill} />
-        <View style={[styles.colorBlob, { backgroundColor: style.soft }]} />
-        <LinearGradient colors={["rgba(5,7,17,0)", "#050711"]} style={styles.darkFade} />
+        <MidnightBackground glowColor={style.color} />
         <View style={styles.doneWrap}>
-          <Animated.View style={[styles.doneIconWrap, { transform: [{ translateY: floatY }, { rotate: "-8deg" }] }]}>
-            <Text style={styles.doneEmoji}>🍻</Text>
+          <Animated.View style={{ transform: [{ translateY: floatY }] }}>
+            <View style={[styles.doneIconWrap, { borderColor: `${style.color}4D`, backgroundColor: `${style.color}24` }]}>
+              <Text style={styles.doneEmoji}>🍻</Text>
+            </View>
           </Animated.View>
           <Text style={styles.doneTitle}>{doneTitleLabel}</Text>
           <Text style={styles.doneSub}>
@@ -804,7 +773,7 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
             {"\n"}{doneRoundLabel}
           </Text>
           <TouchableOpacity activeOpacity={0.9} style={styles.restartBtn} onPress={restart}>
-            <LinearGradient colors={[style.color, "#B92BFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.restartGradient}>
+            <LinearGradient colors={style.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.restartGradient}>
               <Text style={styles.restartText}>{restartLabel}</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -821,16 +790,14 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={style.bg} locations={[0, 0.48, 1]} style={StyleSheet.absoluteFill} />
-      <View style={[styles.colorBlob, { backgroundColor: style.soft }]} />
-      <LinearGradient colors={["rgba(5,7,17,0)", "#050711"]} style={styles.darkFade} />
+      <MidnightBackground glowColor={style.color} />
 
       <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         <View style={styles.topBar}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
-          <View style={[styles.modePill, { borderColor: `${style.color}35` }]}>
+          <View style={styles.modePill}>
             <Text style={styles.modeEmoji}>{style.emoji}</Text>
             <Text style={[styles.modeLabel, { color: style.color }]}>{style.label}</Text>
           </View>
@@ -850,29 +817,28 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
         </View>
 
         <View style={styles.hero}>
-          <Text style={styles.eyebrow}>NEVER HAVE I EVER</Text>
-          <Text style={styles.heroTitle}>Drink if{"\n"}you have</Text>
+          <Text style={styles.eyebrow}>{lang === "no" ? "JEG HAR ALDRI ..." : "NEVER HAVE I EVER"}</Text>
+          <Text style={styles.heroTitle}>{lang === "no" ? "Drikk hvis du har" : "Drink if you have"}</Text>
           <Text style={styles.heroSub}>{heroSubLabel}</Text>
-          <Animated.View pointerEvents="none" style={[styles.heroIconWrap, { transform: [{ translateY: floatY }, { rotate: "-8deg" }] }]}>
-            <Text style={styles.heroIcon}>🍻</Text>
-          </Animated.View>
         </View>
 
         <View style={styles.cardArea}>
-          <View style={[styles.cardBackLayer, { borderColor: `${style.color}18` }]} />
-          <Animated.View style={[styles.card, {
+          <Animated.View style={{
             opacity: cardOpacity,
             transform: [{ translateY: cardSlide }, { scale: cardScale }],
-            borderColor: `${style.color}30`,
-          }]}>
-            <View style={[styles.cardTopLine, { backgroundColor: style.color }]} />
-            <Text style={[styles.cardLabel, { color: style.color }]}>{cardLabel}</Text>
-            <Text style={styles.questionText}>{cleanQuestion(question)}</Text>
-            {choice !== null && (
-              <View style={[styles.choiceBadge, { backgroundColor: choice ? `${style.color}22` : "rgba(255,255,255,0.06)" }]}>
-                <Text style={styles.choiceBadgeText}>{choice ? plusSipLabel : neverDoneLabel}</Text>
-              </View>
-            )}
+          }}>
+            <GlassCard radius={28} contentStyle={styles.cardContent}>
+              <View style={[styles.cardAccentBar, { backgroundColor: style.color }]} />
+              <Text style={[styles.cardLabel, { color: style.color }]}>{cardLabel}</Text>
+              <Text style={styles.questionText}>{cleanQuestion(question)}</Text>
+              {choice !== null && (
+                <View style={[styles.choiceBadge, { borderColor: choice ? `${style.color}80` : "rgba(255,255,255,0.2)" }]}>
+                  <Text style={[styles.choiceBadgeText, choice && { color: style.color }]}>
+                    {choice ? plusSipLabel : neverDoneLabel}
+                  </Text>
+                </View>
+              )}
+            </GlassCard>
           </Animated.View>
         </View>
 
@@ -883,7 +849,7 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
             <Text style={styles.buttonSub}>{noSipLabel}</Text>
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.9} disabled={locked} style={styles.yesBtn} onPress={() => handleChoice(true)}>
-            <LinearGradient colors={[style.color, "#B92BFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.yesGradient}>
+            <LinearGradient colors={style.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.yesGradient}>
               <Text style={styles.buttonEmoji}>🍺</Text>
               <Text style={styles.yesBtnText}>{doneLabel}</Text>
               <Text style={styles.yesBtnSub}>{sipLabel}</Text>
@@ -900,55 +866,62 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#050711" },
-  colorBlob: { position: "absolute", top: -150, right: -180, width: width * 1.22, height: width * 1.22, borderRadius: width },
-  darkFade: { position: "absolute", top: height * 0.36, left: 0, right: 0, height: height * 0.5 },
-  inner: { flex: 1, paddingHorizontal: 22, paddingTop: 56, paddingBottom: 34 },
-  topBar: { height: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
-  backBtn: { width: 52, height: 52, borderRadius: 26, backgroundColor: "rgba(255,255,255,0.09)", borderWidth: 1, borderColor: "rgba(255,255,255,0.13)", alignItems: "center", justifyContent: "center" },
-  backText: { color: "#fff", fontSize: 26, fontWeight: "900", marginTop: -2 },
-  modePill: { height: 52, paddingHorizontal: 18, borderRadius: 30, backgroundColor: "rgba(6, 8, 20, 0.82)", borderWidth: 1, flexDirection: "row", alignItems: "center" },
-  modeEmoji: { fontSize: 18, marginRight: 8 },
-  modeLabel: { fontSize: 14, fontWeight: "900" },
-  sipPill: { height: 52, minWidth: 52, borderRadius: 26, backgroundColor: "rgba(6, 8, 20, 0.82)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", paddingHorizontal: 12, flexDirection: "row" },
-  sipEmoji: { fontSize: 15, marginRight: 5 },
-  sipNumber: { fontSize: 14, fontWeight: "900" },
-  progressBg: { height: 5, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.08)", overflow: "hidden", marginBottom: 34 },
-  progressFill: { height: "100%", borderRadius: 999 },
-  hero: { minHeight: 220, justifyContent: "flex-end", position: "relative", marginBottom: 24 },
-  eyebrow: { color: "rgba(255,255,255,0.72)", fontSize: 13, fontWeight: "900", letterSpacing: 3.2, marginBottom: 18 },
-  heroTitle: { color: "#fff", fontSize: 48, lineHeight: 53, fontWeight: "900", letterSpacing: -1.8 },
-  heroSub: { marginTop: 18, maxWidth: width * 0.67, color: "rgba(255,255,255,0.62)", fontSize: 15, lineHeight: 21, fontWeight: "800" },
-  heroIconWrap: { position: "absolute", right: -12, bottom: 4 },
-  heroIcon: { fontSize: 116, opacity: 0.92 },
-  cardArea: { flex: 1, justifyContent: "center", minHeight: 250 },
-  cardBackLayer: { position: "absolute", left: 12, right: 12, top: 22, bottom: 4, borderRadius: 32, backgroundColor: "rgba(8,11,25,0.42)", borderWidth: 1, transform: [{ rotate: "-2deg" }] },
-  card: { minHeight: 260, borderRadius: 32, backgroundColor: "rgba(8,11,25,0.82)", borderWidth: 1, paddingHorizontal: 24, paddingVertical: 28, overflow: "hidden", justifyContent: "center" },
-  cardTopLine: { position: "absolute", top: 0, left: 0, right: 0, height: 4 },
-  cardLabel: { fontSize: 11, fontWeight: "900", letterSpacing: 2.4, marginBottom: 22, textAlign: "center" },
-  questionText: { color: "#fff", fontSize: 31, lineHeight: 39, fontWeight: "900", letterSpacing: -0.9, textAlign: "center" },
-  choiceBadge: { marginTop: 22, alignSelf: "center", borderRadius: 999, paddingHorizontal: 16, paddingVertical: 9 },
-  choiceBadgeText: { color: "#fff", fontSize: 13, fontWeight: "900" },
-  buttonRow: { flexDirection: "row", gap: 14, marginTop: 22 },
-  noBtn: { flex: 1, height: 92, borderRadius: 24, backgroundColor: "rgba(8,11,25,0.82)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
-  yesBtn: { flex: 1, height: 92, borderRadius: 24, overflow: "hidden" },
-  yesGradient: { flex: 1, borderRadius: 24, alignItems: "center", justifyContent: "center" },
-  buttonEmoji: { fontSize: 25, marginBottom: 5 },
-  noBtnText: { color: "#fff", fontSize: 14, fontWeight: "900", letterSpacing: 1 },
-  yesBtnText: { color: "#fff", fontSize: 14, fontWeight: "900", letterSpacing: 1 },
-  buttonSub: { color: "rgba(255,255,255,0.38)", fontSize: 11, fontWeight: "700", marginTop: 3 },
-  yesBtnSub: { color: "rgba(255,255,255,0.78)", fontSize: 11, fontWeight: "700", marginTop: 3 },
-  skipBtn: { alignItems: "center", paddingTop: 18, paddingBottom: 4 },
-  skipText: { color: "rgba(255,255,255,0.38)", fontSize: 14, fontWeight: "800" },
+  container: { flex: 1, backgroundColor: COLORS.bg },
+  inner: { flex: 1, paddingHorizontal: 24, paddingTop: 56, paddingBottom: 32 },
+
+  /* ---------- Toppbar ---------- */
+  topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 16, marginBottom: 20 },
+  backBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: "rgba(255,255,255,0.07)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" },
+  backText: { color: COLORS.text, fontSize: 20, marginTop: -1 },
+  modePill: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(255,255,255,0.07)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", borderRadius: 999, paddingVertical: 9, paddingHorizontal: 16 },
+  modeEmoji: { fontSize: 15 },
+  modeLabel: { fontFamily: FONT.bold, fontSize: 14 },
+  sipPill: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(255,255,255,0.07)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", borderRadius: 999, paddingVertical: 9, paddingHorizontal: 14 },
+  sipEmoji: { fontSize: 14 },
+  sipNumber: { fontFamily: FONT.bold, fontSize: 14 },
+
+  /* ---------- Progresjon ---------- */
+  progressBg: { height: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.08)", overflow: "hidden", marginBottom: 28 },
+  progressFill: { height: "100%", borderRadius: 2 },
+
+  /* ---------- Hero ---------- */
+  hero: { marginBottom: 18 },
+  eyebrow: { fontFamily: FONT.label, fontSize: 11, letterSpacing: 3, color: COLORS.text50 },
+  heroTitle: { marginTop: 10, fontFamily: FONT.extra, fontSize: 34, lineHeight: 36, letterSpacing: -1, color: COLORS.text },
+  heroSub: { marginTop: 10, maxWidth: width * 0.75, fontFamily: FONT.regular, fontSize: 14, lineHeight: 20, color: COLORS.text60 },
+
+  /* ---------- Spørsmålskort ---------- */
+  cardArea: { flex: 1, justifyContent: "center", minHeight: 230 },
+  cardContent: { minHeight: 240, paddingHorizontal: 24, paddingVertical: 28, alignItems: "center", justifyContent: "center" },
+  cardAccentBar: { width: 36, height: 4, borderRadius: 2, marginBottom: 18 },
+  cardLabel: { fontFamily: FONT.label, fontSize: 11, letterSpacing: 3, marginBottom: 16, textAlign: "center" },
+  questionText: { fontFamily: FONT.extra, fontSize: 28, lineHeight: 35, letterSpacing: -0.5, color: COLORS.text, textAlign: "center" },
+  choiceBadge: { marginTop: 20, alignSelf: "center", borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 },
+  choiceBadgeText: { fontFamily: FONT.label, fontSize: 11, letterSpacing: 1.5, color: COLORS.text60 },
+
+  /* ---------- Valgknapper ---------- */
+  buttonRow: { flexDirection: "row", gap: 12, marginTop: 20 },
+  noBtn: { flex: 1, height: 88, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" },
+  yesBtn: { flex: 1, height: 88, borderRadius: 20, overflow: "hidden" },
+  yesGradient: { flex: 1, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  buttonEmoji: { fontSize: 23, marginBottom: 5 },
+  noBtnText: { fontFamily: FONT.bold, fontSize: 13, letterSpacing: 2, color: COLORS.text },
+  yesBtnText: { fontFamily: FONT.bold, fontSize: 13, letterSpacing: 2, color: COLORS.text },
+  buttonSub: { fontFamily: FONT.regular, fontSize: 11, color: COLORS.text40, marginTop: 3 },
+  yesBtnSub: { fontFamily: FONT.regular, fontSize: 11, color: "rgba(255,255,255,0.78)", marginTop: 3 },
+  skipBtn: { alignItems: "center", paddingTop: 16, paddingBottom: 4 },
+  skipText: { fontFamily: FONT.semi, fontSize: 14, color: COLORS.text40 },
+
+  /* ---------- Ferdig-skjerm ---------- */
   doneWrap: { flex: 1, paddingHorizontal: 24, justifyContent: "center", alignItems: "center" },
-  doneIconWrap: { width: 120, height: 120, borderRadius: 36, backgroundColor: "rgba(8,11,25,0.82)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", marginBottom: 24 },
-  doneEmoji: { fontSize: 70 },
-  doneTitle: { color: "#fff", fontSize: 40, fontWeight: "900", letterSpacing: -1.5, marginBottom: 12, textAlign: "center" },
-  doneSub: { textAlign: "center", color: "rgba(255,255,255,0.55)", fontSize: 16, lineHeight: 24, marginBottom: 32 },
-  doneHighlight: { fontWeight: "900" },
-  restartBtn: { width: "100%", height: 60, borderRadius: 22, overflow: "hidden", marginBottom: 14 },
-  restartGradient: { flex: 1, borderRadius: 22, alignItems: "center", justifyContent: "center" },
-  restartText: { color: "#fff", fontSize: 15, fontWeight: "900", letterSpacing: 1.2 },
+  doneIconWrap: { width: 110, height: 110, borderRadius: 32, borderWidth: 1, alignItems: "center", justifyContent: "center", marginBottom: 24 },
+  doneEmoji: { fontSize: 60 },
+  doneTitle: { fontFamily: FONT.extra, fontSize: 36, letterSpacing: -1, color: COLORS.text, marginBottom: 12, textAlign: "center" },
+  doneSub: { textAlign: "center", fontFamily: FONT.regular, fontSize: 16, lineHeight: 24, color: COLORS.text55, marginBottom: 32 },
+  doneHighlight: { fontFamily: FONT.extra },
+  restartBtn: { width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: 14 },
+  restartGradient: { borderRadius: 16, paddingVertical: 17, alignItems: "center", justifyContent: "center" },
+  restartText: { fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2, color: COLORS.text },
   homeBtn: { paddingVertical: 12 },
-  homeText: { color: "rgba(255,255,255,0.42)", fontSize: 14, fontWeight: "800" },
+  homeText: { fontFamily: FONT.semi, fontSize: 14, color: COLORS.text40 },
 });

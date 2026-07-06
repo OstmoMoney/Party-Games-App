@@ -13,6 +13,12 @@ import {
   Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import {
+  MidnightBackground,
+  MODE_THEME,
+  COLORS,
+  FONT,
+} from "../../components/MidnightUI";
 
 const { width, height } = Dimensions.get("window");
 
@@ -514,7 +520,7 @@ const WORDS_BY_MODE = {
       { word: "Utpressing", hint: "Hemmelighet" },
       { word: "ID", hint: "Mindreårig" },
       { word: "Kort", hint: "Verdi" },
-      { word: "Hitler", hint: "" },
+      { word: "Hitler", hint: "Bart" },
       { word: "Alibi", hint: "Dekning" },
       { word: "Engangstelefon", hint: "Engangs" },
       { word: "Hacket", hint: "Tilgang" },
@@ -565,7 +571,7 @@ const WORDS_BY_MODE = {
       { word: "Blackmail", hint: "Secret" },
       { word: "Forgery", hint: "Underage" },
       { word: "Card", hint: "Value" },
-      { word: "Hitler", hint: "" },
+      { word: "Hitler", hint: "Mustache" },
       { word: "Alibi", hint: "Cover" },
       { word: "Prepaid", hint: "Untraceable" },
       { word: "Hacked", hint: "Access" },
@@ -611,49 +617,11 @@ const WORDS_BY_MODE = {
   },
 };
 
-const MODE_STYLE = {
-  chill: {
-    color: "#25D98A",
-    soft: "rgba(37,217,138,0.22)",
-    bg: ["#101A16", "#07100D", "#050711"],
-    label: "Chill",
-    emoji: "😊",
-  },
-  date: {
-    color: "#EC4899",
-    soft: "rgba(236,72,153,0.22)",
-    bg: ["#1A0A14", "#100609", "#050711"],
-    label: "Date",
-    emoji: "💕",
-  },
-  drunk: {
-    color: "#4F7BFF",
-    soft: "rgba(79,123,255,0.22)",
-    bg: ["#10162A", "#080B19", "#050711"],
-    label: "Drunk",
-    emoji: "🍻",
-  },
-  nasj: {
-    color: "#FB923C",
-    soft: "rgba(251,146,60,0.22)",
-    bg: ["#24160D", "#100A08", "#050711"],
-    label: "Nasj",
-    emoji: "🔥",
-  },
-  blasted: {
-    color: "#F87171",
-    soft: "rgba(248,113,113,0.22)",
-    bg: ["#241012", "#100709", "#050711"],
-    label: "Blasted",
-    emoji: "💀",
-  },
-};
-
 export default function ImposterScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
   const mode = route?.params?.mode || "chill";
 
-  const style = MODE_STYLE[mode] || MODE_STYLE.chill;
+  const style = MODE_THEME[mode] || MODE_THEME.chill;
 
   const [phase, setPhase] = useState("setup");
   const [players, setPlayers] = useState([playerName, "", ""]);
@@ -729,18 +697,7 @@ export default function ImposterScreen({ navigation, route }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <LinearGradient
-        colors={style.bg}
-        locations={[0, 0.5, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-
-      <View style={[styles.colorBlob, { backgroundColor: style.soft, shadowColor: style.color }]} />
-
-      <LinearGradient
-        colors={["rgba(5,7,17,0)", "#050711"]}
-        style={styles.darkFade}
-      />
+      <MidnightBackground glowColor={style.color} />
 
       <Animated.View
         style={[styles.topBar, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
@@ -754,7 +711,7 @@ export default function ImposterScreen({ navigation, route }) {
           <Text style={[styles.modeLabel, { color: style.color }]}>{style.label}</Text>
         </View>
 
-        <View style={{ width: 52 }} />
+        <View style={{ width: 42 }} />
       </Animated.View>
 
       {phase === "setup" && (
@@ -764,41 +721,53 @@ export default function ImposterScreen({ navigation, route }) {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
             <View style={styles.hero}>
               <Text style={styles.eyebrow}>IMPOSTER MODE</Text>
-              <Text style={styles.heroTitle}>Who is{"\n"}lying?</Text>
-              <Text style={styles.heroSub}>Everyone gets the same word except one player.</Text>
-              <Animated.View
-                style={[styles.heroEmojiWrap, { transform: [{ translateY: floatY }, { rotate: "-8deg" }] }]}
-              >
-                <Text style={styles.heroEmoji}>🎭</Text>
-              </Animated.View>
+              <View style={styles.heroTitleRow}>
+                <Text style={styles.heroTitle}>{t("Hvem lyver?", "Who is lying?", "誰が嘘をついている？")}</Text>
+                <Animated.Text style={[styles.heroEmoji, { transform: [{ translateY: floatY }] }]}>
+                  🎭
+                </Animated.Text>
+              </View>
+              <Text style={styles.heroSub}>
+                {t(
+                  "Alle får det samme ordet bortsett fra én spiller.",
+                  "Everyone gets the same word except one player.",
+                  "一人を除いて全員が同じ言葉をもらう。"
+                )}
+              </Text>
             </View>
 
             <View style={styles.infoCard}>
-              <Text style={styles.infoTitle}>How it works</Text>
+              <Text style={styles.infoTitle}>{t("Slik funker det", "How it works", "遊び方")}</Text>
               <View style={styles.ruleRow}>
                 <Text style={styles.ruleEmoji}>👀</Text>
-                <Text style={styles.ruleText}>Everyone gets a word except the imposter.</Text>
+                <Text style={styles.ruleText}>
+                  {t("Alle får et ord — bortsett fra imposteren.", "Everyone gets a word except the imposter.", "インポスター以外は言葉をもらう。")}
+                </Text>
               </View>
               <View style={styles.ruleRow}>
                 <Text style={styles.ruleEmoji}>🎭</Text>
-                <Text style={styles.ruleText}>The imposter only gets a hint.</Text>
+                <Text style={styles.ruleText}>
+                  {t("Imposteren får bare et hint.", "The imposter only gets a hint.", "インポスターはヒントだけ。")}
+                </Text>
               </View>
               <View style={styles.ruleRow}>
                 <Text style={styles.ruleEmoji}>🍻</Text>
-                <Text style={styles.ruleText}>Vote for who you think is lying.</Text>
+                <Text style={styles.ruleText}>
+                  {t("Stem på den dere tror lyver.", "Vote for who you think is lying.", "嘘をついていると思う人に投票。")}
+                </Text>
               </View>
             </View>
 
-            <Text style={styles.sectionLabel}>PLAYERS</Text>
+            <Text style={styles.sectionLabel}>{t("SPILLERE", "PLAYERS", "プレイヤー")}</Text>
 
             {players.map((p, i) => (
               <View key={i} style={styles.inputRow}>
-                <View style={[styles.inputIcon, { backgroundColor: `${style.color}22` }]}>
+                <View style={[styles.inputIcon, { backgroundColor: `${style.color}24`, borderColor: `${style.color}4D` }]}>
                   <Text style={[styles.inputIconText, { color: style.color }]}>{i + 1}</Text>
                 </View>
                 <TextInput
                   value={p}
-                  placeholder={`Player ${i + 1}`}
+                  placeholder={t(`Spiller ${i + 1}`, `Player ${i + 1}`, `プレイヤー ${i + 1}`)}
                   placeholderTextColor="rgba(255,255,255,0.26)"
                   onChangeText={(text) => {
                     const copy = [...players];
@@ -824,7 +793,9 @@ export default function ImposterScreen({ navigation, route }) {
                 style={styles.addBtn}
                 onPress={() => setPlayers([...players, ""])}
               >
-                <Text style={[styles.addBtnText, { color: style.color }]}>+ Add player</Text>
+                <Text style={[styles.addBtnText, { color: style.color }]}>
+                  {t("+ Legg til spiller", "+ Add player", "+ プレイヤー追加")}
+                </Text>
               </TouchableOpacity>
             )}
 
@@ -835,12 +806,12 @@ export default function ImposterScreen({ navigation, route }) {
               onPress={startGame}
             >
               <LinearGradient
-                colors={[style.color, "#B92BFF"]}
+                colors={style.gradient}
                 style={styles.startGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
-                <Text style={styles.startBtnText}>START GAME →</Text>
+                <Text style={styles.startBtnText}>{t("START SPILLET →", "START GAME →", "スタート →")}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </ScrollView>
@@ -849,7 +820,7 @@ export default function ImposterScreen({ navigation, route }) {
 
       {phase === "reveal" && (
         <View style={styles.revealContent}>
-          <Text style={styles.revealSub}>Give phone to</Text>
+          <Text style={styles.revealSub}>{t("GI TELEFONEN TIL", "GIVE PHONE TO", "電話を渡して")}</Text>
           <Text style={styles.revealName}>{roles[index]?.name}</Text>
 
           <Pressable
@@ -865,25 +836,29 @@ export default function ImposterScreen({ navigation, route }) {
               {!revealed && (
                 <View style={styles.holdContent}>
                   <Text style={styles.holdEmoji}>👆</Text>
-                  <Text style={styles.holdTitle}>Hold to reveal</Text>
-                  <Text style={styles.holdSub}>Don't show anyone else</Text>
+                  <Text style={styles.holdTitle}>{t("Hold for å se", "Hold to reveal", "長押しで表示")}</Text>
+                  <Text style={styles.holdSub}>{t("Ikke vis til noen andre", "Don't show anyone else", "他の人に見せないで")}</Text>
                 </View>
               )}
 
               {revealed && roles[index]?.type === "player" && (
                 <View style={styles.cardContent}>
-                  <View style={[styles.cardBadge, { backgroundColor: `${style.color}22` }]}>
-                    <Text style={[styles.cardBadgeText, { color: style.color }]}>YOUR WORD</Text>
+                  <View style={[styles.cardBadge, { borderColor: `${style.color}80` }]}>
+                    <Text style={[styles.cardBadgeText, { color: style.color }]}>
+                      {t("DITT ORD", "YOUR WORD", "あなたの言葉")}
+                    </Text>
                   </View>
                   <Text style={styles.cardWord}>{roles[index]?.word}</Text>
-                  <Text style={styles.cardHint}>You are not the imposter</Text>
+                  <Text style={styles.cardHint}>{t("Du er ikke imposteren", "You are not the imposter", "あなたはインポスターではない")}</Text>
                 </View>
               )}
 
               {revealed && roles[index]?.type === "imposter" && (
                 <View style={styles.cardContent}>
                   <View style={styles.imposterBadge}>
-                    <Text style={styles.imposterBadgeText}>YOU ARE THE IMPOSTER</Text>
+                    <Text style={styles.imposterBadgeText}>
+                      {t("DU ER IMPOSTEREN", "YOU ARE THE IMPOSTER", "あなたがインポスター")}
+                    </Text>
                   </View>
                   <Text style={styles.imposterWord}>???</Text>
                   <Text style={styles.cardHint}>Hint: {roles[index]?.hint}</Text>
@@ -895,13 +870,15 @@ export default function ImposterScreen({ navigation, route }) {
           {revealed && (
             <TouchableOpacity activeOpacity={0.9} style={styles.nextBtn} onPress={next}>
               <LinearGradient
-                colors={[style.color, "#B92BFF"]}
+                colors={style.gradient}
                 style={styles.nextGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
                 <Text style={styles.nextBtnText}>
-                  {index + 1 >= roles.length ? "Everyone ready →" : "Next player →"}
+                  {index + 1 >= roles.length
+                    ? t("Alle klare →", "Everyone ready →", "全員準備OK →")
+                    : t("Neste spiller →", "Next player →", "次のプレイヤー →")}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -912,17 +889,19 @@ export default function ImposterScreen({ navigation, route }) {
       {phase === "done" && (
         <View style={styles.doneContent}>
           <Text style={styles.doneEmoji}>🎭</Text>
-          <Text style={styles.doneTitle}>Everyone ready!</Text>
-          <Text style={styles.doneSub}>Discuss, give clues and find the imposter.</Text>
+          <Text style={styles.doneTitle}>{t("Alle er klare!", "Everyone ready!", "全員準備OK！")}</Text>
+          <Text style={styles.doneSub}>
+            {t("Diskuter, gi hint og finn imposteren.", "Discuss, give clues and find the imposter.", "話し合ってヒントを出し、インポスターを見つけよう。")}
+          </Text>
 
           <TouchableOpacity activeOpacity={0.9} style={styles.restartBtn} onPress={restart}>
-            <LinearGradient colors={[style.color, "#B92BFF"]} style={styles.restartGradient}>
-              <Text style={styles.restartBtnText}>Play Again 🔄</Text>
+            <LinearGradient colors={style.gradient} style={styles.restartGradient}>
+              <Text style={styles.restartBtnText}>{t("SPILL IGJEN 🔄", "PLAY AGAIN 🔄", "もう一回 🔄")}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.homeBtn} onPress={() => navigation.popToTop()}>
-            <Text style={styles.homeBtnText}>← Back Home</Text>
+            <Text style={styles.homeBtnText}>{t("← Tilbake til hjem", "← Back home", "← ホームへ")}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -931,116 +910,112 @@ export default function ImposterScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#050711" },
-  colorBlob: {
-    position: "absolute", top: -150, right: -180,
-    width: width * 1.2, height: width * 1.2, borderRadius: width,
-    shadowOpacity: 1, shadowRadius: 100, shadowOffset: { width: 0, height: 0 },
-  },
-  darkFade: {
-    position: "absolute", top: height * 0.35, left: 0, right: 0, height: height * 0.45,
-  },
+  container: { flex: 1, backgroundColor: COLORS.bg },
+
+  /* ---------- Toppbar ---------- */
   topBar: {
-    height: 52, marginTop: 56, paddingHorizontal: 22,
+    marginTop: 72, paddingHorizontal: 24,
     flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 20,
   },
   backBtn: {
-    width: 52, height: 52, borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center",
+    width: 42, height: 42, borderRadius: 21,
+    backgroundColor: "rgba(255,255,255,0.07)", borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center",
   },
-  backText: { color: "#fff", fontSize: 24, fontWeight: "900" },
+  backText: { color: COLORS.text, fontSize: 20, marginTop: -1 },
   modePill: {
-    height: 52, paddingHorizontal: 18, borderRadius: 999,
-    backgroundColor: "rgba(8,11,25,0.75)", borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)", flexDirection: "row", alignItems: "center",
+    flexDirection: "row", alignItems: "center", gap: 8,
+    backgroundColor: "rgba(255,255,255,0.07)", borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)", borderRadius: 999,
+    paddingVertical: 9, paddingHorizontal: 16,
   },
-  modeEmoji: { fontSize: 18, marginRight: 8 },
-  modeLabel: { fontSize: 14, fontWeight: "900" },
+  modeEmoji: { fontSize: 15 },
+  modeLabel: { fontFamily: FONT.bold, fontSize: 14 },
+
+  /* ---------- Setup ---------- */
   phase: { flex: 1 },
-  scroll: { paddingTop: 55, paddingHorizontal: 22, paddingBottom: 40 },
-  hero: { minHeight: 220, justifyContent: "flex-end", marginBottom: 28, position: "relative" },
-  eyebrow: {
-    color: "rgba(255,255,255,0.72)", fontSize: 13, fontWeight: "900",
-    letterSpacing: 3, marginBottom: 16,
+  scroll: { paddingTop: 28, paddingHorizontal: 24, paddingBottom: 40 },
+  hero: { marginBottom: 24 },
+  eyebrow: { fontFamily: FONT.label, fontSize: 11, letterSpacing: 3, color: COLORS.text50 },
+  heroTitleRow: {
+    flexDirection: "row", justifyContent: "space-between",
+    alignItems: "flex-start", marginTop: 10, gap: 12,
   },
-  heroTitle: { color: "#fff", fontSize: 46, lineHeight: 50, fontWeight: "900", letterSpacing: -1.8 },
-  heroSub: {
-    marginTop: 16, maxWidth: width * 0.7,
-    color: "rgba(255,255,255,0.58)", fontSize: 15, lineHeight: 22, fontWeight: "700",
-  },
-  heroEmojiWrap: { position: "absolute", right: -8, bottom: 8 },
-  heroEmoji: { fontSize: 110, opacity: 0.92 },
+  heroTitle: { flex: 1, fontFamily: FONT.extra, fontSize: 38, lineHeight: 40, letterSpacing: -1, color: COLORS.text },
+  heroEmoji: { fontSize: 40, lineHeight: 44 },
+  heroSub: { marginTop: 10, maxWidth: width * 0.75, fontFamily: FONT.regular, fontSize: 14, lineHeight: 20, color: COLORS.text60 },
   infoCard: {
-    backgroundColor: "rgba(8,11,25,0.72)", borderRadius: 26,
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", padding: 18, marginBottom: 28,
+    backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 22,
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", padding: 18, marginBottom: 24,
   },
-  infoTitle: { color: "#fff", fontSize: 17, fontWeight: "900", marginBottom: 14 },
+  infoTitle: { fontFamily: FONT.extra, fontSize: 17, color: COLORS.text, marginBottom: 14 },
   ruleRow: { flexDirection: "row", marginBottom: 10 },
-  ruleEmoji: { fontSize: 18, marginRight: 10 },
-  ruleText: { flex: 1, color: "rgba(255,255,255,0.56)", fontSize: 13, lineHeight: 18, fontWeight: "700" },
-  sectionLabel: {
-    color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: "900",
-    letterSpacing: 4, marginBottom: 16,
-  },
-  inputRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
-  inputIcon: { width: 50, height: 50, borderRadius: 17, alignItems: "center", justifyContent: "center", marginRight: 12 },
-  inputIconText: { fontSize: 15, fontWeight: "900" },
+  ruleEmoji: { fontSize: 17, marginRight: 10 },
+  ruleText: { flex: 1, fontFamily: FONT.regular, fontSize: 13, lineHeight: 19, color: COLORS.text55 },
+  sectionLabel: { fontFamily: FONT.label, fontSize: 11, letterSpacing: 3, color: COLORS.text50, marginBottom: 12 },
+  inputRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  inputIcon: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, alignItems: "center", justifyContent: "center", marginRight: 12 },
+  inputIconText: { fontFamily: FONT.bold, fontSize: 15 },
   input: {
-    flex: 1, height: 56, backgroundColor: "rgba(8,11,25,0.72)",
-    borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
-    color: "#fff", fontSize: 16, fontWeight: "800", paddingHorizontal: 16,
+    flex: 1, height: 52, backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)",
+    color: COLORS.text, fontFamily: FONT.medium, fontSize: 16, paddingHorizontal: 16,
   },
   removeBtn: {
-    width: 38, height: 38, borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center",
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.07)", borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)", alignItems: "center",
     justifyContent: "center", marginLeft: 10,
   },
-  removeBtnText: { color: "rgba(255,255,255,0.45)", fontSize: 18, fontWeight: "900" },
+  removeBtnText: { color: COLORS.text45, fontSize: 17, fontFamily: FONT.bold },
   addBtn: {
-    height: 54, borderRadius: 18, borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(8,11,25,0.5)",
-    alignItems: "center", justifyContent: "center", marginBottom: 16,
+    borderRadius: 16, borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(255,255,255,0.05)",
+    alignItems: "center", justifyContent: "center", paddingVertical: 16, marginBottom: 16,
   },
-  addBtnText: { fontSize: 15, fontWeight: "900" },
-  startBtn: { height: 58, borderRadius: 20, overflow: "hidden" },
-  startGradient: { flex: 1, alignItems: "center", justifyContent: "center" },
-  startBtnText: { color: "#fff", fontSize: 15, fontWeight: "900", letterSpacing: 1.2 },
-  disabledBtn: { opacity: 0.45 },
-  revealContent: { flex: 1, paddingHorizontal: 22, justifyContent: "center", alignItems: "center" },
-  revealSub: { color: "rgba(255,255,255,0.48)", fontSize: 15, fontWeight: "700", marginBottom: 6 },
-  revealName: { color: "#fff", fontSize: 34, fontWeight: "900", marginBottom: 28 },
+  addBtnText: { fontFamily: FONT.bold, fontSize: 14, letterSpacing: 0.5 },
+  startBtn: { borderRadius: 16, overflow: "hidden" },
+  startGradient: { paddingVertical: 17, alignItems: "center", justifyContent: "center" },
+  startBtnText: { color: COLORS.text, fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2 },
+  disabledBtn: { opacity: 0.5 },
+
+  /* ---------- Reveal ---------- */
+  revealContent: { flex: 1, paddingHorizontal: 24, justifyContent: "center", alignItems: "center" },
+  revealSub: { fontFamily: FONT.label, fontSize: 11, letterSpacing: 3, color: COLORS.text50, marginBottom: 8 },
+  revealName: { fontFamily: FONT.extra, fontSize: 34, letterSpacing: -1, color: COLORS.text, marginBottom: 28 },
   revealCard: {
-    width: width - 44, minHeight: 230, borderRadius: 30,
-    backgroundColor: "rgba(8,11,25,0.8)", borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)", padding: 32,
+    width: width - 48, minHeight: 230, borderRadius: 28,
+    backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)", padding: 32,
     alignItems: "center", justifyContent: "center", marginBottom: 24,
   },
   holdContent: { alignItems: "center" },
-  holdEmoji: { fontSize: 42, marginBottom: 14 },
-  holdTitle: { color: "#fff", fontSize: 20, fontWeight: "900", marginBottom: 8 },
-  holdSub: { color: "rgba(255,255,255,0.42)", fontSize: 13, fontWeight: "700" },
+  holdEmoji: { fontSize: 40, marginBottom: 14 },
+  holdTitle: { fontFamily: FONT.extra, fontSize: 20, color: COLORS.text, marginBottom: 8 },
+  holdSub: { fontFamily: FONT.regular, fontSize: 13, color: COLORS.text45 },
   cardContent: { alignItems: "center" },
-  cardBadge: { paddingHorizontal: 13, paddingVertical: 6, borderRadius: 999, marginBottom: 18 },
-  cardBadgeText: { fontSize: 11, fontWeight: "900", letterSpacing: 1.2 },
-  cardWord: { color: "#fff", fontSize: 42, fontWeight: "900", marginBottom: 10, textAlign: "center" },
-  cardHint: { color: "rgba(255,255,255,0.52)", fontSize: 15, fontWeight: "700" },
+  cardBadge: { borderWidth: 1, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, marginBottom: 18 },
+  cardBadgeText: { fontFamily: FONT.label, fontSize: 10, letterSpacing: 1.5 },
+  cardWord: { fontFamily: FONT.black, fontSize: 40, letterSpacing: -1, color: COLORS.text, marginBottom: 10, textAlign: "center" },
+  cardHint: { fontFamily: FONT.regular, fontSize: 14, color: COLORS.text55 },
   imposterBadge: {
-    backgroundColor: "rgba(248,113,113,0.18)", paddingHorizontal: 14,
-    paddingVertical: 6, borderRadius: 999, marginBottom: 18,
+    borderWidth: 1, borderColor: "rgba(236,72,120,0.5)",
+    paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, marginBottom: 18,
   },
-  imposterBadgeText: { color: "#F87171", fontSize: 11, fontWeight: "900", letterSpacing: 1.2 },
-  imposterWord: { color: "#F87171", fontSize: 48, fontWeight: "900", marginBottom: 10 },
-  nextBtn: { width: width - 44, height: 58, borderRadius: 20, overflow: "hidden" },
-  nextGradient: { flex: 1, alignItems: "center", justifyContent: "center" },
-  nextBtnText: { color: "#fff", fontSize: 15, fontWeight: "900", letterSpacing: 1.2 },
-  doneContent: { flex: 1, paddingHorizontal: 22, justifyContent: "center", alignItems: "center" },
-  doneEmoji: { fontSize: 76, marginBottom: 18 },
-  doneTitle: { color: "#fff", fontSize: 38, fontWeight: "900", marginBottom: 12 },
-  doneSub: { color: "rgba(255,255,255,0.55)", fontSize: 15, lineHeight: 22, textAlign: "center", marginBottom: 30 },
-  restartBtn: { width: "100%", height: 58, borderRadius: 20, overflow: "hidden", marginBottom: 14 },
-  restartGradient: { flex: 1, alignItems: "center", justifyContent: "center" },
-  restartBtnText: { color: "#fff", fontSize: 15, fontWeight: "900", letterSpacing: 1.2 },
+  imposterBadgeText: { color: COLORS.pink, fontFamily: FONT.label, fontSize: 10, letterSpacing: 1.5 },
+  imposterWord: { color: COLORS.pink, fontFamily: FONT.black, fontSize: 46, marginBottom: 10 },
+  nextBtn: { width: width - 48, borderRadius: 16, overflow: "hidden" },
+  nextGradient: { paddingVertical: 17, alignItems: "center", justifyContent: "center" },
+  nextBtnText: { color: COLORS.text, fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2 },
+
+  /* ---------- Ferdig ---------- */
+  doneContent: { flex: 1, paddingHorizontal: 24, justifyContent: "center", alignItems: "center" },
+  doneEmoji: { fontSize: 64, marginBottom: 18 },
+  doneTitle: { fontFamily: FONT.extra, fontSize: 36, letterSpacing: -1, color: COLORS.text, marginBottom: 12 },
+  doneSub: { fontFamily: FONT.regular, fontSize: 15, lineHeight: 22, color: COLORS.text55, textAlign: "center", marginBottom: 30 },
+  restartBtn: { width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: 14 },
+  restartGradient: { paddingVertical: 17, alignItems: "center", justifyContent: "center" },
+  restartBtnText: { color: COLORS.text, fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2 },
   homeBtn: { paddingVertical: 12 },
-  homeBtnText: { color: "rgba(255,255,255,0.42)", fontSize: 14, fontWeight: "800" },
+  homeBtnText: { fontFamily: FONT.semi, fontSize: 14, color: COLORS.text40 },
 });

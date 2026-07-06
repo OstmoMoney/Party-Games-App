@@ -4,7 +4,14 @@ import {
   Vibration, Animated, Platform, Dimensions, StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { t } from "../../i18n";
+import {
+  MidnightBackground,
+  MODE_THEME,
+  COLORS,
+  FONT,
+} from "../../components/MidnightUI";
 
 const { width, height } = Dimensions.get("window");
 const SWIPE_EDGE = 25;
@@ -154,7 +161,6 @@ const QUESTIONS = {
       "Si noe sårbart om deg selv",
       "Beskriv drømmedaten din",
       "Si hvem i rommet du synes er mest attraktiv",
-      "",
       "Gi personen til høyre et oppriktig kompliment",
       "Si den søteste tingen du har gjort for noen du likte",
       "Fortell om sist du var forelsket",
@@ -200,7 +206,6 @@ const QUESTIONS = {
       "Share something vulnerable about yourself",
       "Describe your dream date",
       "Say who in the room you find most attractive",
-      "",
       "Give the person to your right a genuine compliment",
       "Share the sweetest thing you've done for someone you liked",
       "Tell about the last time you were in love",
@@ -635,30 +640,6 @@ const QUESTIONS = {
   },
 };
 
-const MODE_COLORS = {
-  chill:   ["#0a1a0e", "#0d2a14", "#0a1a0e"],
-  date:    ["#1A0A14", "#100609", "#1A0A14"],
-  drunk:   ["#080f1a", "#0a1830", "#080f1a"],
-  nasj:    ["#140a04", "#241208", "#140a04"],
-  blasted: ["#140606", "#240a0a", "#140606"],
-};
-
-const MODE_ACCENT = {
-  chill:   "#4ade80",
-  date:    "#EC4899",
-  drunk:   "#60a5fa",
-  nasj:    "#fb923c",
-  blasted: "#f87171",
-};
-
-const MODE_LABEL = {
-  chill:   "CHILL",
-  date:    "DATE",
-  drunk:   "DRUNK",
-  nasj:    "NASJ",
-  blasted: "BLASTED",
-};
-
 const vibrateShort = () => Platform.OS !== "web" && Vibration.vibrate(40);
 const vibrateLong  = () => Platform.OS !== "web" && Vibration.vibrate([0, 500]);
 
@@ -686,8 +667,8 @@ function Bubble({ size, left, delay, duration, color }) {
 export default function RiskItScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
   const mode = route?.params?.mode || "chill";
-  const accent = MODE_ACCENT[mode] || MODE_ACCENT.chill;
-  const bgColors = MODE_COLORS[mode] || MODE_COLORS.chill;
+  const theme = MODE_THEME[mode] || MODE_THEME.chill;
+  const accent = theme.color;
 
   const lang = t("no", "en", "en");
   const modeQuestions = QUESTIONS[mode]?.[lang] || QUESTIONS[mode]?.no || QUESTIONS.chill.no;
@@ -704,25 +685,47 @@ export default function RiskItScreen({ navigation, route }) {
   const finishTimeout = useRef(null);
   const countdownRunning = useRef(false);
 
+  // Vibrering kan skrus av og på — valget lagres på telefonen
+  const [vibrationOn, setVibrationOn] = useState(true);
+  const vibrationRef = useRef(true);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+
+    AsyncStorage.getItem("riskItVibration").then((saved) => {
+      if (saved === "0") {
+        setVibrationOn(false);
+        vibrationRef.current = false;
+      }
+    });
   }, []);
+
+  const toggleVibration = () => {
+    const next = !vibrationOn;
+    setVibrationOn(next);
+    vibrationRef.current = next;
+    AsyncStorage.setItem("riskItVibration", next ? "1" : "0");
+    if (next) vibrateShort();
+  };
 
   useEffect(() => {
     touchesRef.current = touches;
   }, [touches]);
 
-  const handleTouchStart = (e) => {
-    const active = e.nativeEvent.touches || [];
-    if (active.some((t) => t.pageX < SWIPE_EDGE)) return;
+  // Registrerer nye fingre OG oppdaterer posisjonen til de som allerede
+  // ligger på — sirkelen følger fingeren helt til tiden stopper (result-fasen fryser).
+  const syncTouches = (e) => {
     if (gameState === "result") return;
+    const active = e.nativeEvent.touches || [];
 
     const map = { ...touchesRef.current };
     active.forEach((t) => {
       const id = String(t.identifier);
       if (!map[id]) {
+        // Ignorer nye fingre helt i venstre kant (swipe-tilbake-sonen)
+        if (t.pageX < SWIPE_EDGE) return;
         const anim = new Animated.Value(1);
         animsRef.current[id] = anim;
         Animated.loop(
@@ -736,6 +739,8 @@ export default function RiskItScreen({ navigation, route }) {
           y: t.pageY,
           color: FINGER_COLORS[Math.floor(Math.random() * FINGER_COLORS.length)],
         };
+      } else {
+        map[id] = { ...map[id], x: t.pageX, y: t.pageY };
       }
     });
 
@@ -745,21 +750,6 @@ export default function RiskItScreen({ navigation, route }) {
       setGameState("playing");
       startCountdown();
     }
-  };
-
-  const handleTouchMove = (e) => {
-    const active = e.nativeEvent.touches || [];
-    if (active.some((t) => t.pageX < SWIPE_EDGE)) return;
-    if (gameState === "result") return;
-
-    const map = { ...touchesRef.current };
-    active.forEach((t) => {
-      const id = String(t.identifier);
-      if (map[id]) {
-        map[id] = { ...map[id], x: t.pageX, y: t.pageY };
-      }
-    });
-    setTouches(map);
   };
 
   const handleTouchEnd = (e) => {
@@ -789,7 +779,7 @@ export default function RiskItScreen({ navigation, route }) {
     countdownRunning.current = true;
     let time = 7;
     setCountdown(time);
-    vibrateShort();
+    if (vibrationRef.current) vibrateShort();
 
     countdownInterval.current = setInterval(() => {
       time -= 1;
@@ -799,7 +789,7 @@ export default function RiskItScreen({ navigation, route }) {
         return;
       }
       setCountdown(time);
-      vibrateShort();
+      if (vibrationRef.current) vibrateShort();
     }, 1000);
 
     finishTimeout.current = setTimeout(pickWinner, 7000);
@@ -819,7 +809,7 @@ export default function RiskItScreen({ navigation, route }) {
     setWinnerId(picked);
     setQuestion(modeQuestions[Math.floor(Math.random() * modeQuestions.length)]);
     setGameState("result");
-    vibrateLong();
+    if (vibrationRef.current) vibrateLong();
   };
 
   const resetGame = () => {
@@ -843,18 +833,18 @@ export default function RiskItScreen({ navigation, route }) {
   return (
     <View
       style={styles.container}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
+      onStartShouldSetResponder={() => true}
+      onResponderGrant={syncTouches}
+      onResponderStart={syncTouches}
+      onResponderMove={syncTouches}
+      onResponderEnd={handleTouchEnd}
+      onResponderRelease={handleTouchEnd}
+      onResponderTerminationRequest={() => false}
+      onResponderTerminate={handleTouchEnd}
     >
       <StatusBar barStyle="light-content" />
 
-      <LinearGradient colors={bgColors} style={StyleSheet.absoluteFill} />
-
-      {/* Gold glow blobs */}
-      <View style={[styles.glowBlobTop, { backgroundColor: accent + "25" }]} />
-      <View style={[styles.glowBlobBottom, { backgroundColor: accent + "15" }]} />
+      <MidnightBackground glowColor={accent} />
 
       <Bubble size={50} left={30}       delay={0}    duration={16000} color={accent} />
       <Bubble size={30} left={150}      delay={3000} duration={20000} color={accent} />
@@ -863,11 +853,35 @@ export default function RiskItScreen({ navigation, route }) {
 
       {gameState === "intro" && (
         <Animated.View style={[styles.backWrap, { opacity: fadeAnim }]}>
-          <TouchableOpacity style={[styles.backBtn, { borderColor: accent + "40" }]} onPress={() => navigation.goBack()}>
-            <Text style={[styles.backText, { color: accent }]}>←</Text>
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
-          <View style={[styles.modePill, { backgroundColor: accent + "18", borderColor: accent + "55" }]}>
-            <Text style={[styles.modeLabel, { color: accent }]}>{MODE_LABEL[mode] || mode.toUpperCase()}</Text>
+          <View style={styles.topRight}>
+            <TouchableOpacity
+              style={[
+                styles.vibrateBtn,
+                vibrationOn && { backgroundColor: accent + "24", borderColor: accent + "80" },
+              ]}
+              onPress={toggleVibration}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={lang === "no" ? "Skru vibrering av eller på" : "Toggle vibration"}
+              accessibilityState={{ selected: vibrationOn }}
+            >
+              <Text style={[styles.vibrateEmoji, !vibrationOn && { opacity: 0.45 }]}>📳</Text>
+              <Text
+                style={[
+                  styles.vibrateText,
+                  { color: vibrationOn ? accent : "rgba(255,255,255,0.45)" },
+                ]}
+              >
+                {vibrationOn ? (lang === "no" ? "PÅ" : "ON") : (lang === "no" ? "AV" : "OFF")}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.modePill}>
+              <Text style={styles.modeEmoji}>{theme.emoji}</Text>
+              <Text style={[styles.modeLabel, { color: accent }]}>{theme.label}</Text>
+            </View>
           </View>
         </Animated.View>
       )}
@@ -875,12 +889,12 @@ export default function RiskItScreen({ navigation, route }) {
       {gameState === "intro" && (
         <Animated.View style={[styles.center, { opacity: fadeAnim }]}>
           <Text style={styles.logo}>🤾</Text>
-          <Text style={[styles.title, { color: accent }]}>RISK IT</Text>
-          <Text style={[styles.sub, { color: accent + "BB" }]}>{(MODE_LABEL[mode] || mode).toUpperCase()} MODE</Text>
-          <View style={[styles.instructBox, { borderColor: accent + "30", backgroundColor: accent + "0A" }]}>
-            <Text style={[styles.instruct, { color: accent + "CC" }]}>{instructText}</Text>
+          <Text style={styles.title}>{lang === "no" ? "Sjansen" : "Risk It"}</Text>
+          <Text style={[styles.sub, { color: accent }]}>{theme.label.toUpperCase()} MODE</Text>
+          <View style={styles.instructBox}>
+            <Text style={styles.instruct}>{instructText}</Text>
           </View>
-          <Text style={[styles.subSmall, { color: accent + "55" }]}>{maxPlayersText}</Text>
+          <Text style={styles.subSmall}>{maxPlayersText}</Text>
         </Animated.View>
       )}
 
@@ -925,14 +939,17 @@ export default function RiskItScreen({ navigation, route }) {
         <View style={styles.resultOverlay}>
           <View style={styles.resultCard}>
             <View style={[styles.resultAccent, { backgroundColor: accent }]} />
-            <Text style={[styles.resultLabel, { color: accent + "99" }]}>{challengeLabel}</Text>
+            <Text style={[styles.resultLabel, { color: accent }]}>{challengeLabel}</Text>
             <Text style={styles.resultQuestion}>{question}</Text>
-            <TouchableOpacity
-              style={[styles.continueBtn, { backgroundColor: accent }]}
-              onPress={resetGame}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.continueBtnText]}>{continueText}</Text>
+            <TouchableOpacity style={styles.continueBtn} onPress={resetGame} activeOpacity={0.85}>
+              <LinearGradient
+                colors={theme.gradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.continueGradient}
+              >
+                <Text style={styles.continueBtnText}>{continueText}</Text>
+              </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity style={styles.homeLink} onPress={() => navigation.popToTop()}>
               <Text style={styles.homeLinkText}>{endGameText}</Text>
@@ -945,59 +962,58 @@ export default function RiskItScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-
-  glowBlobTop: {
-    position: "absolute",
-    top: -120,
-    left: width / 2 - 150,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-  },
-  glowBlobBottom: {
-    position: "absolute",
-    bottom: -100,
-    right: -80,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-  },
+  container: { flex: 1, backgroundColor: COLORS.bg },
 
   backWrap: {
-    position: "absolute", top: 56, left: 20, right: 20,
+    position: "absolute", top: 56, left: 24, right: 24,
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     zIndex: 10,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderWidth: 1,
+    width: 42, height: 42, borderRadius: 21,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.14)",
     alignItems: "center", justifyContent: "center",
   },
-  backText: { fontSize: 18, fontWeight: "900" },
+  backText: { color: COLORS.text, fontSize: 20, marginTop: -1 },
   modePill: {
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 999, borderWidth: 1,
+    flexDirection: "row", alignItems: "center", gap: 8,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.14)",
+    borderRadius: 999, paddingVertical: 9, paddingHorizontal: 16,
   },
-  modeLabel: { fontSize: 13, fontWeight: "800", letterSpacing: 1 },
+  modeEmoji: { fontSize: 15 },
+  modeLabel: { fontFamily: FONT.bold, fontSize: 14 },
+  topRight: { flexDirection: "row", alignItems: "center", gap: 10 },
+  vibrateBtn: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.14)",
+    borderRadius: 999, paddingVertical: 9, paddingHorizontal: 14,
+  },
+  vibrateEmoji: { fontSize: 14 },
+  vibrateText: { fontFamily: FONT.label, fontSize: 10, letterSpacing: 1.5 },
 
   center: {
-    flex: 1, alignItems: "center", justifyContent: "center",
+    flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 28,
   },
-  logo: { fontSize: 60, marginBottom: 8 },
-  title: { fontSize: 52, fontWeight: "900", letterSpacing: 4, marginBottom: 4 },
-  sub: { fontSize: 16, fontWeight: "800", letterSpacing: 2, marginBottom: 36 },
+  logo: { fontSize: 56, marginBottom: 14 },
+  title: {
+    fontFamily: FONT.black, fontSize: 52, letterSpacing: -2,
+    color: COLORS.text, marginBottom: 6,
+  },
+  sub: { fontFamily: FONT.label, fontSize: 12, letterSpacing: 3, marginBottom: 36 },
   instructBox: {
     borderRadius: 16, paddingHorizontal: 24, paddingVertical: 14,
-    borderWidth: 1,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.12)",
     marginBottom: 12,
   },
-  instruct: { fontSize: 15, textAlign: "center", fontWeight: "600" },
-  subSmall: { fontSize: 13 },
+  instruct: { fontFamily: FONT.regular, fontSize: 15, lineHeight: 21, textAlign: "center", color: COLORS.text65 },
+  subSmall: { fontFamily: FONT.regular, fontSize: 13, color: COLORS.text40 },
 
   countdown: {
-    fontSize: 130, fontWeight: "900", letterSpacing: -4,
+    fontFamily: FONT.black, fontSize: 130, letterSpacing: -4,
   },
 
   fingerDot: {
@@ -1005,35 +1021,38 @@ const styles = StyleSheet.create({
     width: 88, height: 88, borderRadius: 44,
   },
 
+  // Halvgjennomsiktig, slik at vinnersirkelen synes selv om noen
+  // holdt fingeren midt på skjermen der kortet ligger
   resultOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(13,10,24,0.25)",
     justifyContent: "center",
     alignItems: "center",
   },
   resultCard: {
     width: width - 48,
-    backgroundColor: "rgba(10,10,20,0.82)",
+    backgroundColor: "rgba(23,18,37,0.72)",
     borderRadius: 28, padding: 28,
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.14)",
     overflow: "hidden",
   },
   resultAccent: {
-    position: "absolute", top: 0, left: 0, right: 0, height: 3,
+    width: 36, height: 4, borderRadius: 2, marginBottom: 16,
   },
   resultLabel: {
-    fontSize: 12,
-    fontWeight: "700", letterSpacing: 2, marginBottom: 12,
+    fontFamily: FONT.label, fontSize: 11, letterSpacing: 3, marginBottom: 12,
   },
   resultQuestion: {
-    color: "#fff", fontSize: 24, fontWeight: "900",
-    lineHeight: 32, marginBottom: 24,
+    color: COLORS.text, fontFamily: FONT.extra, fontSize: 24,
+    lineHeight: 31, letterSpacing: -0.5, marginBottom: 24,
   },
   continueBtn: {
-    borderRadius: 16, paddingVertical: 16,
-    alignItems: "center", marginBottom: 10,
+    borderRadius: 16, overflow: "hidden", marginBottom: 10,
   },
-  continueBtnText: { color: "#0B0B14", fontSize: 16, fontWeight: "900" },
+  continueGradient: {
+    paddingVertical: 16, alignItems: "center", justifyContent: "center",
+  },
+  continueBtnText: { color: COLORS.text, fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2 },
   homeLink: { alignItems: "center", paddingVertical: 8 },
-  homeLinkText: { color: "rgba(255,255,255,0.25)", fontSize: 13 },
+  homeLinkText: { fontFamily: FONT.regular, color: COLORS.text40, fontSize: 13 },
 });
