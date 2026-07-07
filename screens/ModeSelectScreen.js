@@ -13,6 +13,8 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { t } from "../i18n";
+import { hasPro, purchasePartyPass } from "../pro";
+import { tapMedium, celebrate } from "../haptics";
 import {
   MidnightBackground,
   GlassCard,
@@ -34,7 +36,6 @@ const MODES = [
       "良い雰囲気、プレッシャーなし。新しい人にぴったり。"
     ),
     accent: "#34d399",
-    locked: false,
   },
   {
     key: "date",
@@ -45,7 +46,7 @@ const MODES = [
       "親密で少しスパイシー。本当に知り合おう。"
     ),
     accent: "#e879b9",
-    locked: false,
+    pro: true,
   },
   {
     key: "drunk",
@@ -56,7 +57,6 @@ const MODES = [
       "飲み物の挑戦とダーレス。前夜祭の定番。"
     ),
     accent: "#608cff",
-    locked: false,
   },
   {
     key: "nasj",
@@ -67,7 +67,7 @@ const MODES = [
       "本格的に生々しい。心の弱い人向けではない。"
     ),
     accent: "#f97316",
-    locked: false,
+    pro: true,
   },
   {
     key: "blasted",
@@ -78,7 +78,7 @@ const MODES = [
       "制限なし。完全な狂気。勇気ある者だけに。"
     ),
     accent: "#ec4878",
-    locked: false,
+    pro: true,
   },
 ];
 
@@ -135,6 +135,9 @@ export default function ModeSelectScreen({ navigation, route }) {
   const [selected, setSelected] = useState(null);
   // Innhold til Midnight-dialogen (erstatter Alert.alert)
   const [dialog, setDialog] = useState(null);
+  const [proOwned, setProOwned] = useState(hasPro());
+
+  const isLocked = (mode) => !!mode.pro && !proOwned;
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(26)).current;
@@ -158,8 +161,27 @@ export default function ModeSelectScreen({ navigation, route }) {
 
   const closeDialog = () => setDialog(null);
 
+  // Gjennomfører kjøpet, låser opp alt og kvitterer med suksessdialog
+  const buyPass = async () => {
+    await purchasePartyPass();
+    setProOwned(true);
+    celebrate();
+    setDialog({
+      icon: "🎉",
+      title: t("Party Pass aktivert!", "Party Pass activated!", "パーティーパス有効！"),
+      message: t(
+        "Alle modes er låst opp. Kos dere i kveld!",
+        "All modes are unlocked. Have a great night!",
+        "全モードがアンロックされました！"
+      ),
+      actions: [
+        { text: t("LET'S GO", "LET'S GO", "レッツゴー"), onPress: closeDialog },
+      ],
+    });
+  };
+
   const handleSelect = (mode) => {
-    if (mode.locked) {
+    if (isLocked(mode)) {
       setDialog({
         icon: "👑",
         title: t("Party Pass", "Party Pass", "パーティーパス"),
@@ -173,7 +195,7 @@ export default function ModeSelectScreen({ navigation, route }) {
             text: t("LÅS OPP", "UNLOCK", "ロック解除"),
             gradient: PRO_GRADIENT,
             textColor: COLORS.proText,
-            onPress: closeDialog,
+            onPress: buyPass,
           },
           { text: t("Ikke nå", "Not now", "今はやめる"), secondary: true, onPress: closeDialog },
         ],
@@ -181,6 +203,7 @@ export default function ModeSelectScreen({ navigation, route }) {
       return;
     }
 
+    tapMedium();
     setSelected(mode.key);
 
     // Kort pause så man rekker å se den valgte rammen før navigering
@@ -208,7 +231,7 @@ export default function ModeSelectScreen({ navigation, route }) {
           text: t("KJØP PARTY PASS", "BUY PARTY PASS", "購入する"),
           gradient: PRO_GRADIENT,
           textColor: COLORS.proText,
-          onPress: closeDialog,
+          onPress: buyPass,
         },
         { text: t("Ikke nå", "Not now", "今はやめる"), secondary: true, onPress: closeDialog },
       ],
@@ -280,6 +303,7 @@ export default function ModeSelectScreen({ navigation, route }) {
                 outputRange: [22, 0],
               });
               const isSelected = selected === mode.key;
+              const locked = isLocked(mode);
 
               return (
                 <Animated.View
@@ -289,8 +313,10 @@ export default function ModeSelectScreen({ navigation, route }) {
                   <ScalePressable
                     onPress={() => handleSelect(mode)}
                     accessibilityLabel={`${mode.name}. ${mode.desc}. ${
-                      mode.locked
+                      locked
                         ? t("Krever Party Pass", "Requires Party Pass", "パーティーパスが必要")
+                        : mode.pro
+                        ? t("Inkludert i Party Pass", "Included in Party Pass", "パーティーパスに含まれる")
                         : t("Gratis", "Free", "無料")
                     }`}
                   >
@@ -308,7 +334,7 @@ export default function ModeSelectScreen({ navigation, route }) {
                             {mode.name}
                           </Text>
 
-                          {!mode.locked ? (
+                          {!mode.pro ? (
                             <View style={[styles.freeBadge, { borderColor: `${mode.accent}80` }]}>
                               <Text style={[styles.freeBadgeText, { color: mode.accent }]}>
                                 {t("GRATIS", "FREE", "無料")}
@@ -321,7 +347,9 @@ export default function ModeSelectScreen({ navigation, route }) {
                               end={{ x: 1, y: 0 }}
                               style={styles.proBadge}
                             >
-                              <Text style={styles.proBadgeText}>PRO</Text>
+                              <Text style={styles.proBadgeText}>
+                                {locked ? "PRO" : "PRO ✓"}
+                              </Text>
                             </LinearGradient>
                           )}
                         </View>
@@ -331,7 +359,7 @@ export default function ModeSelectScreen({ navigation, route }) {
                         </Text>
                       </View>
 
-                      <Text style={styles.modeArrow}>{mode.locked ? "🔒" : "→"}</Text>
+                      <Text style={styles.modeArrow}>{locked ? "🔒" : "→"}</Text>
                     </GlassCard>
                   </ScalePressable>
                 </Animated.View>
@@ -351,26 +379,28 @@ export default function ModeSelectScreen({ navigation, route }) {
         actions={dialog?.actions || []}
       />
 
-      {/* ---------- Pinnet PRO-banner ---------- */}
-      <View style={[styles.buyProPinned, { bottom: insets.bottom + 16 }]}>
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={handleBuyPro}
-          accessibilityRole="button"
-          accessibilityLabel={t("Kjøp Party Pass", "Buy Party Pass", "パーティーパスを購入")}
-        >
-          <LinearGradient
-            colors={PRO_GRADIENT}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.buyProGradient}
+      {/* ---------- Pinnet PRO-banner (skjules når passet er kjøpt) ---------- */}
+      {!proOwned && (
+        <View style={[styles.buyProPinned, { bottom: insets.bottom + 16 }]}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={handleBuyPro}
+            accessibilityRole="button"
+            accessibilityLabel={t("Kjøp Party Pass", "Buy Party Pass", "パーティーパスを購入")}
           >
-            <Text style={styles.buyProText}>
-              👑 {t("KJØP PARTY PASS", "BUY PARTY PASS", "パーティーパスを購入")}
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+            <LinearGradient
+              colors={PRO_GRADIENT}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buyProGradient}
+            >
+              <Text style={styles.buyProText}>
+                👑 {t("KJØP PARTY PASS", "BUY PARTY PASS", "パーティーパスを購入")}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

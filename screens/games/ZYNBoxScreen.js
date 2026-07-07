@@ -19,6 +19,8 @@ import {
   FONT,
 } from "../../components/MidnightUI";
 import { drawDrinkCard, hasSessionCrew } from "../../session";
+import { tapLight, celebrate } from "../../haptics";
+import { addStats } from "../../stats";
 
 const { width, height } = Dimensions.get("window");
 
@@ -904,7 +906,16 @@ export default function ZYNBoxScreen({ navigation, route }) {
   const intensityText = lang === "no" ? "BYTT INTENSITET →" : "CHANGE INTENSITY →";
   const backText = lang === "no" ? "← Tilbake til hjem" : "← Back home";
 
+  // Runde fullført: feir med haptikk og legg runden til i statistikken
+  useEffect(() => {
+    if (done) {
+      celebrate();
+      addStats({ rounds: 1 });
+    }
+  }, [done]);
+
   const nextCard = () => {
+    tapLight();
     Animated.parallel([
       Animated.timing(cardOpacity, { toValue: 0, duration: 170, useNativeDriver: true }),
       Animated.timing(cardTranslate, { toValue: -30, duration: 170, useNativeDriver: true }),
@@ -945,7 +956,12 @@ export default function ZYNBoxScreen({ navigation, route }) {
           ]}
         >
           <View style={styles.topBar}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <TouchableOpacity
+              style={styles.backBtn}
+              onPress={() => navigation.goBack()}
+              accessibilityRole="button"
+              accessibilityLabel={lang === "no" ? "Tilbake" : "Go back"}
+            >
               <Text style={styles.backText}>←</Text>
             </TouchableOpacity>
             <View style={styles.modePill}>
@@ -979,7 +995,13 @@ export default function ZYNBoxScreen({ navigation, route }) {
           </View>
 
           <View style={styles.bottomWrap}>
-            <TouchableOpacity activeOpacity={0.9} style={styles.throwBtn} onPress={nextCard}>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.throwBtn}
+              onPress={nextCard}
+              accessibilityRole="button"
+              accessibilityLabel={lang === "no" ? "Neste kort" : "Next card"}
+            >
               <LinearGradient colors={style.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.throwGradient}>
                 <Text style={styles.throwText}>{throwBtnText}</Text>
               </LinearGradient>
@@ -998,7 +1020,13 @@ export default function ZYNBoxScreen({ navigation, route }) {
             {doneSubText}{"\n"}
             <Text style={[styles.doneHighlight, { color: style.color }]}>{deck.length} {questionsText}</Text>
           </Text>
-          <TouchableOpacity activeOpacity={0.9} style={styles.restartBtn} onPress={restart}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.restartBtn}
+            onPress={restart}
+            accessibilityRole="button"
+            accessibilityLabel={lang === "no" ? "Spill igjen" : "Play again"}
+          >
             <LinearGradient colors={style.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.restartGradient}>
               <Text style={styles.restartText}>{restartText}</Text>
             </LinearGradient>
@@ -1007,10 +1035,17 @@ export default function ZYNBoxScreen({ navigation, route }) {
             activeOpacity={0.85}
             style={[styles.intensityBtn, { borderColor: `${style.color}66` }]}
             onPress={() => navigation.goBack()}
+            accessibilityRole="button"
+            accessibilityLabel={lang === "no" ? "Bytt intensitet" : "Change intensity"}
           >
             <Text style={[styles.intensityText, { color: style.color }]}>{intensityText}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.homeBtn} onPress={() => navigation.popToTop()}>
+          <TouchableOpacity
+            style={styles.homeBtn}
+            onPress={() => navigation.popToTop()}
+            accessibilityRole="button"
+            accessibilityLabel={lang === "no" ? "Tilbake til hjem" : "Back home"}
+          >
             <Text style={styles.homeBtnText}>{backText}</Text>
           </TouchableOpacity>
         </View>

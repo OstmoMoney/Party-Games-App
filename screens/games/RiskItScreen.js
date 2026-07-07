@@ -7,6 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { t } from "../../i18n";
+import { addStats } from "../../stats";
 import {
   MidnightBackground,
   MODE_THEME,
@@ -812,6 +813,8 @@ export default function RiskItScreen({ navigation, route }) {
     setQuestion(modeQuestions[Math.floor(Math.random() * modeQuestions.length)]);
     setGameState("result");
     if (vibrationRef.current) vibrateLong();
+    // Én utdelt utfordring = én runde i statistikken
+    addStats({ rounds: 1 });
   };
 
   const resetGame = () => {
@@ -855,7 +858,12 @@ export default function RiskItScreen({ navigation, route }) {
 
       {gameState === "intro" && (
         <Animated.View style={[styles.backWrap, { top: insets.top + 10 }, { opacity: fadeAnim }]}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            accessibilityRole="button"
+            accessibilityLabel={lang === "no" ? "Tilbake" : "Go back"}
+          >
             <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
           <View style={styles.topRight}>
@@ -943,7 +951,13 @@ export default function RiskItScreen({ navigation, route }) {
             <View style={[styles.resultAccent, { backgroundColor: accent }]} />
             <Text style={[styles.resultLabel, { color: accent }]}>{challengeLabel}</Text>
             <Text style={styles.resultQuestion}>{question}</Text>
-            <TouchableOpacity style={styles.continueBtn} onPress={resetGame} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={styles.continueBtn}
+              onPress={resetGame}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={lang === "no" ? "Fortsett til neste runde" : "Continue to next round"}
+            >
               <LinearGradient
                 colors={theme.gradient}
                 start={{ x: 0, y: 0 }}
@@ -953,7 +967,12 @@ export default function RiskItScreen({ navigation, route }) {
                 <Text style={styles.continueBtnText}>{continueText}</Text>
               </LinearGradient>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.homeLink} onPress={() => navigation.popToTop()}>
+            <TouchableOpacity
+              style={styles.homeLink}
+              onPress={() => navigation.popToTop()}
+              accessibilityRole="button"
+              accessibilityLabel={endGameText}
+            >
               <Text style={styles.homeLinkText}>{endGameText}</Text>
             </TouchableOpacity>
           </View>

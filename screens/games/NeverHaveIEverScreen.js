@@ -18,6 +18,8 @@ import {
   COLORS,
   FONT,
 } from "../../components/MidnightUI";
+import { tapLight, tapMedium, celebrate } from "../../haptics";
+import { addStats } from "../../stats";
 
 const { width, height } = Dimensions.get("window");
 
@@ -726,6 +728,7 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
 
   const handleChoice = (hasDone) => {
     if (locked) return;
+    tapMedium();
     setLocked(true);
     setChoice(hasDone);
     if (hasDone) setSips((prev) => prev + 1);
@@ -734,10 +737,19 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
 
   const skipQuestion = () => {
     if (locked) return;
+    tapLight();
     setLocked(true);
     setChoice(null);
     goNext();
   };
+
+  // Runde fullført: feir med haptikk og legg runden til i statistikken
+  useEffect(() => {
+    if (done) {
+      celebrate();
+      addStats({ rounds: 1, sips });
+    }
+  }, [done]);
 
   const restart = () => {
     const newDeck = createDeck(deck);
@@ -795,7 +807,13 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
             <Text style={[styles.doneHighlight, { color: style.color }]}>{sips} {sipsWordLabel}</Text>
             {"\n"}{doneRoundLabel}
           </Text>
-          <TouchableOpacity activeOpacity={0.9} style={styles.restartBtn} onPress={restart}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.restartBtn}
+            onPress={restart}
+            accessibilityRole="button"
+            accessibilityLabel={lang === "no" ? "Spill igjen med nye spørsmål" : "Play again with new questions"}
+          >
             <LinearGradient colors={style.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.restartGradient}>
               <Text style={styles.restartText}>{restartLabel}</Text>
             </LinearGradient>
@@ -805,10 +823,17 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
             activeOpacity={0.85}
             style={[styles.intensityBtn, { borderColor: `${style.color}66` }]}
             onPress={() => navigation.goBack()}
+            accessibilityRole="button"
+            accessibilityLabel={lang === "no" ? "Bytt intensitet" : "Change intensity"}
           >
             <Text style={[styles.intensityText, { color: style.color }]}>{intensityLabel}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.homeBtn} onPress={() => navigation.popToTop()}>
+          <TouchableOpacity
+            style={styles.homeBtn}
+            onPress={() => navigation.popToTop()}
+            accessibilityRole="button"
+            accessibilityLabel={lang === "no" ? "Tilbake til hjem" : "Back home"}
+          >
             <Text style={styles.homeText}>{backLabel}</Text>
           </TouchableOpacity>
         </View>
@@ -831,7 +856,12 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
         ]}
       >
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            accessibilityRole="button"
+            accessibilityLabel={lang === "no" ? "Tilbake" : "Go back"}
+          >
             <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
           <View style={styles.modePill}>
@@ -880,12 +910,28 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
         </View>
 
         <View style={styles.buttonRow}>
-          <TouchableOpacity activeOpacity={0.88} disabled={locked} style={styles.noBtn} onPress={() => handleChoice(false)}>
+          <TouchableOpacity
+            activeOpacity={0.88}
+            disabled={locked}
+            style={styles.noBtn}
+            onPress={() => handleChoice(false)}
+            accessibilityRole="button"
+            accessibilityLabel={`${neverLabel}. ${noSipLabel}`}
+            accessibilityState={{ disabled: locked }}
+          >
             <Text style={styles.buttonEmoji}>✋</Text>
             <Text style={styles.noBtnText}>{neverLabel}</Text>
             <Text style={styles.buttonSub}>{noSipLabel}</Text>
           </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.9} disabled={locked} style={styles.yesBtn} onPress={() => handleChoice(true)}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            disabled={locked}
+            style={styles.yesBtn}
+            onPress={() => handleChoice(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`${doneLabel}. ${sipLabel}`}
+            accessibilityState={{ disabled: locked }}
+          >
             <LinearGradient colors={style.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.yesGradient}>
               <Text style={styles.buttonEmoji}>🍺</Text>
               <Text style={styles.yesBtnText}>{doneLabel}</Text>
@@ -894,7 +940,14 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity disabled={locked} onPress={skipQuestion} style={styles.skipBtn}>
+        <TouchableOpacity
+          disabled={locked}
+          onPress={skipQuestion}
+          style={styles.skipBtn}
+          accessibilityRole="button"
+          accessibilityLabel={lang === "no" ? "Hopp over spørsmålet" : "Skip the question"}
+          accessibilityState={{ disabled: locked }}
+        >
           <Text style={styles.skipText}>{skipLabel}</Text>
         </TouchableOpacity>
       </Animated.View>

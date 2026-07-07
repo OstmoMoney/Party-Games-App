@@ -21,6 +21,8 @@ import {
   FONT,
 } from "../../components/MidnightUI";
 import { getSessionPlayers } from "../../session";
+import { tapLight, tapMedium, celebrate } from "../../haptics";
+import { addStats } from "../../stats";
 
 const { width, height } = Dimensions.get("window");
 
@@ -659,9 +661,18 @@ export default function ImposterScreen({ navigation, route }) {
     ).start();
   }, []);
 
+  // Alle roller delt ut: feir med haptikk og legg runden til i statistikken
+  useEffect(() => {
+    if (phase === "done") {
+      celebrate();
+      addStats({ rounds: 1 });
+    }
+  }, [phase]);
+
   const startGame = () => {
     const list = players.filter((p) => p.trim().length > 0);
     if (list.length < 3) return;
+    tapMedium();
 
     const lang = t("no", "en", "en");
     const wordList = WORDS_BY_MODE[mode]?.[lang] || WORDS_BY_MODE[mode]?.en || [];
@@ -681,6 +692,7 @@ export default function ImposterScreen({ navigation, route }) {
   };
 
   const next = () => {
+    tapLight();
     setRevealed(false);
     if (index + 1 >= roles.length) {
       setPhase("done");
@@ -717,7 +729,12 @@ export default function ImposterScreen({ navigation, route }) {
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
         ]}
       >
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel={t("Tilbake", "Go back", "戻る")}
+        >
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
 
@@ -809,6 +826,8 @@ export default function ImposterScreen({ navigation, route }) {
                 activeOpacity={0.86}
                 style={styles.addBtn}
                 onPress={() => setPlayers([...players, ""])}
+                accessibilityRole="button"
+                accessibilityLabel={t("Legg til spiller", "Add player", "プレイヤー追加")}
               >
                 <Text style={[styles.addBtnText, { color: style.color }]}>
                   {t("+ Legg til spiller", "+ Add player", "+ プレイヤー追加")}
@@ -821,6 +840,9 @@ export default function ImposterScreen({ navigation, route }) {
               disabled={validPlayers < 3}
               style={[styles.startBtn, validPlayers < 3 && styles.disabledBtn]}
               onPress={startGame}
+              accessibilityRole="button"
+              accessibilityLabel={t("Start spillet", "Start the game", "スタート")}
+              accessibilityState={{ disabled: validPlayers < 3 }}
             >
               <LinearGradient
                 colors={style.gradient}
@@ -842,12 +864,19 @@ export default function ImposterScreen({ navigation, route }) {
 
           <Pressable
             onPressIn={() => {
+              tapLight();
               setRevealed(true);
               Animated.spring(holdScale, { toValue: 0.97, useNativeDriver: true }).start();
             }}
             onPressOut={() => {
               Animated.spring(holdScale, { toValue: 1, useNativeDriver: true }).start();
             }}
+            accessibilityRole="button"
+            accessibilityLabel={t(
+              "Hold for å se rollen din. Ikke vis til noen andre",
+              "Hold to reveal your role. Don't show anyone else",
+              "長押しで役割を表示"
+            )}
           >
             <Animated.View style={[styles.revealCard, { transform: [{ scale: holdScale }] }]}>
               {!revealed && (
@@ -885,7 +914,17 @@ export default function ImposterScreen({ navigation, route }) {
           </Pressable>
 
           {revealed && (
-            <TouchableOpacity activeOpacity={0.9} style={styles.nextBtn} onPress={next}>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.nextBtn}
+              onPress={next}
+              accessibilityRole="button"
+              accessibilityLabel={
+                index + 1 >= roles.length
+                  ? t("Alle klare", "Everyone ready", "全員準備OK")
+                  : t("Neste spiller", "Next player", "次のプレイヤー")
+              }
+            >
               <LinearGradient
                 colors={style.gradient}
                 style={styles.nextGradient}
@@ -911,13 +950,24 @@ export default function ImposterScreen({ navigation, route }) {
             {t("Diskuter, gi hint og finn imposteren.", "Discuss, give clues and find the imposter.", "話し合ってヒントを出し、インポスターを見つけよう。")}
           </Text>
 
-          <TouchableOpacity activeOpacity={0.9} style={styles.restartBtn} onPress={restart}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.restartBtn}
+            onPress={restart}
+            accessibilityRole="button"
+            accessibilityLabel={t("Spill igjen", "Play again", "もう一回")}
+          >
             <LinearGradient colors={style.gradient} style={styles.restartGradient}>
               <Text style={styles.restartBtnText}>{t("SPILL IGJEN 🔄", "PLAY AGAIN 🔄", "もう一回 🔄")}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.homeBtn} onPress={() => navigation.popToTop()}>
+          <TouchableOpacity
+            style={styles.homeBtn}
+            onPress={() => navigation.popToTop()}
+            accessibilityRole="button"
+            accessibilityLabel={t("Tilbake til hjem", "Back home", "ホームへ")}
+          >
             <Text style={styles.homeBtnText}>{t("← Tilbake til hjem", "← Back home", "← ホームへ")}</Text>
           </TouchableOpacity>
         </View>

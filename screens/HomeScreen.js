@@ -15,6 +15,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, RadialGradient, Stop, Ellipse } from "react-native-svg";
 import { t } from "../i18n";
+import { getStats } from "../stats";
+import { hasPro, purchasePartyPass } from "../pro";
+import { tapLight, celebrate } from "../haptics";
 import {
   MidnightBackground,
   GlassCard,
@@ -164,6 +167,19 @@ export default function HomeScreen({ navigation, route }) {
   const [showRules, setShowRules] = useState(false);
   // Innhold til Midnight-dialogen (erstatter Alert.alert)
   const [dialog, setDialog] = useState(null);
+  const [proOwned, setProOwned] = useState(hasPro());
+  const [stats, setStats] = useState(null);
+
+  // Statistikk og Pro-status friskes opp hver gang Home får fokus,
+  // slik at tall fra en nettopp spilt runde (eller et kjøp i ModeSelect) vises
+  useEffect(() => {
+    const refresh = () => {
+      getStats().then(setStats);
+      setProOwned(hasPro());
+    };
+    refresh();
+    return navigation.addListener("focus", refresh);
+  }, [navigation]);
 
   const featuredGame = GAMES.find((g) => g.isFeatured);
   const otherGames = GAMES.filter((g) => !g.isFeatured);
@@ -225,14 +241,34 @@ export default function HomeScreen({ navigation, route }) {
             text: t("LÅS OPP", "UNLOCK", "ロック解除"),
             gradient: PRO_GRADIENT,
             textColor: COLORS.proText,
-            onPress: closeDialog,
+            onPress: buyPass,
           },
           { text: t("Ikke nå", "Not now", "今はやめる"), secondary: true, onPress: closeDialog },
         ],
       });
       return;
     }
+    tapLight();
     navigation.navigate("ModeSelect", { playerName, game: game.key });
+  };
+
+  // Gjennomfører kjøpet, fjerner banneret og kvitterer med suksessdialog
+  const buyPass = async () => {
+    await purchasePartyPass();
+    setProOwned(true);
+    celebrate();
+    setDialog({
+      icon: "🎉",
+      title: t("Party Pass aktivert!", "Party Pass activated!", "パーティーパス有効！"),
+      message: t(
+        "Alle modes er låst opp. Kos dere i kveld!",
+        "All modes are unlocked. Have a great night!",
+        "全モードがアンロックされました！"
+      ),
+      actions: [
+        { text: t("LET'S GO", "LET'S GO", "レッツゴー"), onPress: closeDialog },
+      ],
+    });
   };
 
   const handleBuyPro = () => {
@@ -249,7 +285,7 @@ export default function HomeScreen({ navigation, route }) {
           text: t("KJØP PARTY PASS", "BUY PARTY PASS", "購入する"),
           gradient: PRO_GRADIENT,
           textColor: COLORS.proText,
-          onPress: closeDialog,
+          onPress: buyPass,
         },
         { text: t("Ikke nå", "Not now", "今はやめる"), secondary: true, onPress: closeDialog },
       ],
@@ -307,6 +343,40 @@ export default function HomeScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* ---------- Statistikk over tid ---------- */}
+        {stats && stats.rounds > 0 && (
+          <View
+            style={styles.statsRow}
+            accessibilityLabel={t(
+              `Dere har spilt ${stats.rounds} runder og tatt ${stats.sips} slurker`,
+              `You've played ${stats.rounds} rounds and taken ${stats.sips} sips`,
+              `${stats.rounds}ラウンド、${stats.sips}口`
+            )}
+          >
+            <Text style={styles.statsEmoji}>🍻</Text>
+            <Text style={styles.statsText}>
+              {t("Dere har spilt", "You've played", "プレイ済み")}{" "}
+              <Text style={styles.statsNumber}>{stats.rounds}</Text>{" "}
+              {t(
+                stats.rounds === 1 ? "runde" : "runder",
+                stats.rounds === 1 ? "round" : "rounds",
+                "ラウンド"
+              )}
+              {stats.sips > 0 && (
+                <>
+                  {" "}{t("og tatt", "and taken", "と")}{" "}
+                  <Text style={styles.statsNumber}>{stats.sips}</Text>{" "}
+                  {t(
+                    stats.sips === 1 ? "slurk" : "slurker",
+                    stats.sips === 1 ? "sip" : "sips",
+                    "口"
+                  )}
+                </>
+              )}
+            </Text>
+          </View>
+        )}
 
         {/* ---------- Featured-kort ---------- */}
         <ScalePressable
@@ -416,26 +486,28 @@ export default function HomeScreen({ navigation, route }) {
         </View>
       </Animated.ScrollView>
 
-      {/* ---------- Pinnet PRO-banner ---------- */}
-      <View style={[styles.buyProPinned, { bottom: insets.bottom + 16 }]}>
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={handleBuyPro}
-          accessibilityRole="button"
-          accessibilityLabel={t("Kjøp Party Pass", "Buy Party Pass", "パーティーパスを購入")}
-        >
-          <LinearGradient
-            colors={PRO_GRADIENT}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.buyProGradient}
+      {/* ---------- Pinnet PRO-banner (skjules når passet er kjøpt) ---------- */}
+      {!proOwned && (
+        <View style={[styles.buyProPinned, { bottom: insets.bottom + 16 }]}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={handleBuyPro}
+            accessibilityRole="button"
+            accessibilityLabel={t("Kjøp Party Pass", "Buy Party Pass", "パーティーパスを購入")}
           >
-            <Text style={styles.buyProText}>
-              👑 {t("KJØP PRO", "BUY PRO", "PROを購入")}
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+            <LinearGradient
+              colors={PRO_GRADIENT}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buyProGradient}
+            >
+              <Text style={styles.buyProText}>
+                👑 {t("KJØP PRO", "BUY PRO", "PROを購入")}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* ---------- Midnight-dialog (erstatter Alert) ---------- */}
       <MidnightModal
@@ -552,6 +624,31 @@ const styles = StyleSheet.create({
   avatarText: {
     fontFamily: FONT.extra,
     fontSize: 17,
+    color: COLORS.text,
+  },
+
+  /* ---------- Statistikk ---------- */
+  statsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    borderRadius: 999,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    alignSelf: "flex-start",
+    marginBottom: 14,
+  },
+  statsEmoji: { fontSize: 13 },
+  statsText: {
+    fontFamily: FONT.regular,
+    fontSize: 12.5,
+    color: COLORS.text55,
+  },
+  statsNumber: {
+    fontFamily: FONT.extra,
     color: COLORS.text,
   },
 

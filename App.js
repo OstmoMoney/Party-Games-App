@@ -11,6 +11,7 @@ import Svg, {
 } from "react-native-svg";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { t } from "./i18n";
+import { loadProStatus } from "./pro";
 import { MidnightBackground, COLORS, FONT } from "./components/MidnightUI";
 import { useFonts } from "expo-font";
 import {
@@ -161,6 +162,7 @@ export default function App() {
     Promise.all([
       AsyncStorage.getItem("playerName"),
       AsyncStorage.getItem("playerBirthdate"),
+      loadProStatus(),
     ]).then(([savedName, savedBirthdate]) => {
       if (!savedName || savedName.length < 2) {
         setInitialRoute("Intro");

@@ -14,6 +14,8 @@ import {
   FONT,
 } from "../../components/MidnightUI";
 import { getSessionPlayers, addressDrinkLine } from "../../session";
+import { tapLight, tapMedium, tapHeavy } from "../../haptics";
+import { addStats } from "../../stats";
 
 const { width, height } = Dimensions.get("window");
 
@@ -1830,6 +1832,7 @@ export default function SpinTheBottleScreen({ navigation, route }) {
 
   const spin = () => {
     if (spinning || activePlayers.length < 2) return;
+    tapLight();
     setSpinning(true);
     setWinner(null);
 
@@ -1846,6 +1849,7 @@ export default function SpinTheBottleScreen({ navigation, route }) {
       const normalized = ((target % 360) + 360) % 360;
       const anglePerPlayer = 360 / activePlayers.length;
       const winnerIdx = Math.floor((normalized + anglePerPlayer / 2) / anglePerPlayer) % activePlayers.length;
+      tapHeavy();
       setWinner(activePlayers[winnerIdx]);
       setChallenge(null);
       setChallengeType(null);
@@ -1855,11 +1859,13 @@ export default function SpinTheBottleScreen({ navigation, route }) {
   };
 
   const pickTruth = () => {
+    tapMedium();
     setChallengeType("truth");
     setChallenge(truths[Math.floor(Math.random() * truths.length)]);
   };
 
   const pickDare = () => {
+    tapMedium();
     setChallengeType("dare");
     const dare = dares[Math.floor(Math.random() * dares.length)];
     // Drikkenøtter adresseres med navn: «Ta en shot» → «Peter, ta en shot»
@@ -1867,6 +1873,8 @@ export default function SpinTheBottleScreen({ navigation, route }) {
   };
 
   const closeModal = () => {
+    // Én gjennomført sannhet/nøtt = én runde i statistikken
+    if (challenge) addStats({ rounds: 1 });
     setShowModal(false);
     setChallenge(null);
     setChallengeType(null);
@@ -1902,7 +1910,12 @@ export default function SpinTheBottleScreen({ navigation, route }) {
       <MidnightBackground glowColor={style.color} />
 
       <Animated.View style={[styles.topBar, { paddingTop: insets.top + 16 }, { opacity: fadeAnim }]}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel={lang === "no" ? "Tilbake" : "Go back"}
+        >
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
         <View style={styles.modePill}>
@@ -1953,6 +1966,8 @@ export default function SpinTheBottleScreen({ navigation, route }) {
               <TouchableOpacity
                 style={[styles.addBtn, { borderColor: style.color + "44" }]}
                 onPress={() => setPlayers([...players, ""])}
+                accessibilityRole="button"
+                accessibilityLabel={lang === "no" ? "Legg til spiller" : "Add player"}
               >
                 <Text style={[styles.addBtnText, { color: style.color }]}>{addPlayerText}</Text>
               </TouchableOpacity>
@@ -1962,6 +1977,9 @@ export default function SpinTheBottleScreen({ navigation, route }) {
               style={[styles.startBtn, activePlayers.length < 2 && { opacity: 0.5 }]}
               onPress={startGame}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={startBtnText}
+              accessibilityState={{ disabled: activePlayers.length < 2 }}
             >
               <LinearGradient
                 colors={style.gradient}
@@ -2004,11 +2022,19 @@ export default function SpinTheBottleScreen({ navigation, route }) {
             onPress={spin}
             activeOpacity={0.85}
             disabled={spinning}
+            accessibilityRole="button"
+            accessibilityLabel={lang === "no" ? "Snurr flasken" : "Spin the bottle"}
+            accessibilityState={{ disabled: spinning }}
           >
             <Text style={[styles.spinBtnText, { color: style.color }]}>{spinText}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.resetBtn} onPress={() => setPhase("setup")}>
+          <TouchableOpacity
+            style={styles.resetBtn}
+            onPress={() => setPhase("setup")}
+            accessibilityRole="button"
+            accessibilityLabel={lang === "no" ? "Endre spillere" : "Change players"}
+          >
             <Text style={styles.resetBtnText}>{changePlayersText}</Text>
           </TouchableOpacity>
         </View>
@@ -2027,6 +2053,8 @@ export default function SpinTheBottleScreen({ navigation, route }) {
                     style={[styles.modalBtn, { backgroundColor: style.color + "22", borderColor: style.color + "55" }]}
                     onPress={pickTruth}
                     activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={truthLabel}
                   >
                     <Text style={styles.modalBtnIcon}>🗣️</Text>
                     <Text style={[styles.modalBtnText, { color: style.color }]}>{truthLabel}</Text>
@@ -2035,6 +2063,8 @@ export default function SpinTheBottleScreen({ navigation, route }) {
                     style={[styles.modalBtn, { backgroundColor: style.color + "22", borderColor: style.color + "55" }]}
                     onPress={pickDare}
                     activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={dareLabel}
                   >
                     <Text style={styles.modalBtnIcon}>🎯</Text>
                     <Text style={[styles.modalBtnText, { color: style.color }]}>{dareLabel}</Text>
@@ -2050,7 +2080,13 @@ export default function SpinTheBottleScreen({ navigation, route }) {
                 </View>
                 <Text style={styles.modalWinner}>{winner}</Text>
                 <Text style={styles.challengeText}>{challenge}</Text>
-                <TouchableOpacity style={styles.closeBtn} onPress={closeModal} activeOpacity={0.85}>
+                <TouchableOpacity
+                  style={styles.closeBtn}
+                  onPress={closeModal}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={nextRoundText}
+                >
                   <LinearGradient
                     colors={style.gradient}
                     start={{ x: 0, y: 0 }}
