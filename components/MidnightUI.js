@@ -1,6 +1,15 @@
 import React from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  Modal,
+  Pressable,
+  TouchableOpacity,
+} from "react-native";
 import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Defs, RadialGradient, Stop, Ellipse } from "react-native-svg";
 
 const { width, height } = Dimensions.get("window");
@@ -145,3 +154,120 @@ export function GlassCard({
     </View>
   );
 }
+
+/* ---------- Midnight-dialog ---------- */
+/*  Erstatter Alert.alert slik at dialoger holder Midnight Glass-      */
+/*  designet. actions: [{ text, onPress, gradient?, textColor?,       */
+/*  secondary? }] — gradient-knapper først, secondary som lenketekst. */
+
+export function MidnightModal({ visible, onClose, icon, title, message, actions = [] }) {
+  return (
+    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
+      <Pressable style={mm.overlay} onPress={onClose}>
+        <Pressable style={mm.card} onPress={() => {}}>
+          {icon ? (
+            <View style={mm.iconWrap}>
+              <Text style={mm.icon}>{icon}</Text>
+            </View>
+          ) : null}
+          <Text style={mm.title}>{title}</Text>
+          {message ? <Text style={mm.message}>{message}</Text> : null}
+
+          <View style={mm.actions}>
+            {actions.map((a, i) =>
+              a.secondary ? (
+                <TouchableOpacity
+                  key={i}
+                  onPress={a.onPress}
+                  style={mm.secondaryBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={a.text}
+                >
+                  <Text style={mm.secondaryText}>{a.text}</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  key={i}
+                  activeOpacity={0.9}
+                  onPress={a.onPress}
+                  style={mm.primaryBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={a.text}
+                >
+                  <LinearGradient
+                    colors={a.gradient || ACCENT_GRADIENT}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={mm.primaryGradient}
+                  >
+                    <Text style={[mm.primaryText, a.textColor && { color: a.textColor }]}>
+                      {a.text}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              )
+            )}
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+const mm = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(13,10,24,0.85)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 28,
+  },
+  card: {
+    width: "100%",
+    backgroundColor: "#171225",
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+    alignItems: "center",
+  },
+  iconWrap: {
+    width: 74,
+    height: 74,
+    borderRadius: 24,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 18,
+  },
+  icon: { fontSize: 36 },
+  title: {
+    fontFamily: FONT.extra,
+    fontSize: 24,
+    letterSpacing: -0.5,
+    color: COLORS.text,
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  message: {
+    fontFamily: FONT.regular,
+    fontSize: 14.5,
+    lineHeight: 21,
+    color: COLORS.text60,
+    textAlign: "center",
+  },
+  actions: { width: "100%", marginTop: 22 },
+  primaryBtn: { borderRadius: 16, overflow: "hidden", marginBottom: 10 },
+  primaryGradient: { paddingVertical: 16, alignItems: "center", justifyContent: "center" },
+  primaryText: {
+    fontFamily: FONT.bold,
+    fontSize: 14,
+    letterSpacing: 2,
+    color: COLORS.text,
+  },
+  secondaryBtn: { alignItems: "center", paddingVertical: 12 },
+  secondaryText: { fontFamily: FONT.semi, fontSize: 14, color: COLORS.text45 },
+});

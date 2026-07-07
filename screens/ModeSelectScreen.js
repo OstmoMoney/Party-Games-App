@@ -7,15 +7,16 @@ import {
   Dimensions,
   Animated,
   StatusBar,
-  Alert,
   ScrollView,
   Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { t } from "../i18n";
 import {
   MidnightBackground,
   GlassCard,
+  MidnightModal,
   PRO_GRADIENT,
   COLORS,
   FONT,
@@ -130,7 +131,10 @@ export default function ModeSelectScreen({ navigation, route }) {
   const gameName = route?.params?.game || "RiskItGame";
   const game = GAME_META[gameName] || GAME_META.RiskItGame;
 
+  const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState(null);
+  // Innhold til Midnight-dialogen (erstatter Alert.alert)
+  const [dialog, setDialog] = useState(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(26)).current;
@@ -152,20 +156,28 @@ export default function ModeSelectScreen({ navigation, route }) {
     ).start();
   }, []);
 
+  const closeDialog = () => setDialog(null);
+
   const handleSelect = (mode) => {
     if (mode.locked) {
-      Alert.alert(
-        t("👑 Party Pass", "👑 Party Pass", "👑 パーティーパス"),
-        t(
+      setDialog({
+        icon: "👑",
+        title: t("Party Pass", "Party Pass", "パーティーパス"),
+        message: t(
           `${mode.name} krever Party Pass. Lås opp alle modes og ekstra innhold.`,
           `${mode.name} requires Party Pass. Unlock all modes and extra content.`,
           `${mode.name}はパーティーパスが必要です。`
         ),
-        [
-          { text: t("Ikke nå", "Not now", "今はやめる"), style: "cancel" },
-          { text: t("Lås opp", "Unlock", "ロック解除"), onPress: () => {} },
-        ]
-      );
+        actions: [
+          {
+            text: t("LÅS OPP", "UNLOCK", "ロック解除"),
+            gradient: PRO_GRADIENT,
+            textColor: COLORS.proText,
+            onPress: closeDialog,
+          },
+          { text: t("Ikke nå", "Not now", "今はやめる"), secondary: true, onPress: closeDialog },
+        ],
+      });
       return;
     }
 
@@ -183,14 +195,24 @@ export default function ModeSelectScreen({ navigation, route }) {
   };
 
   const handleBuyPro = () => {
-    Alert.alert(
-      t("👑 Party Pass", "👑 Party Pass", "👑 パーティーパス"),
-      t(
+    setDialog({
+      icon: "👑",
+      title: t("Party Pass", "Party Pass", "パーティーパス"),
+      message: t(
         "Lås opp alle låste modes og ekstra innhold.",
         "Unlock all locked modes and extra content.",
         "ロックされたモードと追加コンテンツをアンロック。"
-      )
-    );
+      ),
+      actions: [
+        {
+          text: t("KJØP PARTY PASS", "BUY PARTY PASS", "購入する"),
+          gradient: PRO_GRADIENT,
+          textColor: COLORS.proText,
+          onPress: closeDialog,
+        },
+        { text: t("Ikke nå", "Not now", "今はやめる"), secondary: true, onPress: closeDialog },
+      ],
+    });
   };
 
   return (
@@ -199,7 +221,13 @@ export default function ModeSelectScreen({ navigation, route }) {
 
       <MidnightBackground variant="mode" />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + 12, paddingBottom: 90 + insets.bottom + 16 },
+        ]}
+      >
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
           {/* ---------- Toppbar ---------- */}
           <View style={styles.topBar}>
@@ -283,7 +311,7 @@ export default function ModeSelectScreen({ navigation, route }) {
                           {!mode.locked ? (
                             <View style={[styles.freeBadge, { borderColor: `${mode.accent}80` }]}>
                               <Text style={[styles.freeBadgeText, { color: mode.accent }]}>
-                                FREE
+                                {t("GRATIS", "FREE", "無料")}
                               </Text>
                             </View>
                           ) : (
@@ -313,8 +341,18 @@ export default function ModeSelectScreen({ navigation, route }) {
         </Animated.View>
       </ScrollView>
 
+      {/* ---------- Midnight-dialog (erstatter Alert) ---------- */}
+      <MidnightModal
+        visible={!!dialog}
+        onClose={closeDialog}
+        icon={dialog?.icon}
+        title={dialog?.title || ""}
+        message={dialog?.message}
+        actions={dialog?.actions || []}
+      />
+
       {/* ---------- Pinnet PRO-banner ---------- */}
-      <View style={styles.buyProPinned}>
+      <View style={[styles.buyProPinned, { bottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={handleBuyPro}
@@ -340,7 +378,7 @@ export default function ModeSelectScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
 
-  scroll: { paddingTop: 56, paddingHorizontal: 24, paddingBottom: 118 },
+  scroll: { paddingHorizontal: 24 },
 
   /* ---------- Toppbar ---------- */
   topBar: {

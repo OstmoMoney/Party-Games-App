@@ -7,17 +7,18 @@ import {
   Dimensions,
   Animated,
   StatusBar,
-  Alert,
   Modal,
   ScrollView,
   Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, RadialGradient, Stop, Ellipse } from "react-native-svg";
 import { t } from "../i18n";
 import {
   MidnightBackground,
   GlassCard,
+  MidnightModal,
   ACCENT_GRADIENT,
   PRO_GRADIENT,
   COLORS,
@@ -31,7 +32,7 @@ const GAMES = [
     key: "GameTwo",
     icon: "🍻",
     name: t("Jeg har aldri ...", "Never Have I Ever", "ネバー・ハブ・アイ・エバー"),
-    desc: t("142 spørsmål · 3-20 spillere", "142 questions · 3-20 players", "142問 · 3-20人"),
+    desc: t("500+ spørsmål · 3-20 spillere", "500+ questions · 3-20 players", "500+問 · 3-20人"),
     isFeatured: true,
   },
   {
@@ -157,9 +158,12 @@ export default function HomeScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
   const initials = playerName.slice(0, 1).toUpperCase();
   const dayLabel = t(DAY_NO, DAY_EN, DAY_JA)[new Date().getDay()];
+  const insets = useSafeAreaInsets();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [showRules, setShowRules] = useState(false);
+  // Innhold til Midnight-dialogen (erstatter Alert.alert)
+  const [dialog, setDialog] = useState(null);
 
   const featuredGame = GAMES.find((g) => g.isFeatured);
   const otherGames = GAMES.filter((g) => !g.isFeatured);
@@ -189,37 +193,67 @@ export default function HomeScreen({ navigation, route }) {
     ).start();
   }, []);
 
+  const closeDialog = () => setDialog(null);
+
   const goToGame = (game) => {
     if (game.comingSoon) {
-      Alert.alert(
-        t("🧠 Quiz", "🧠 Quiz", "🧠 クイズ"),
-        t("Quiz kommer snart!", "Quiz coming soon!", "クイズは近日公開！")
-      );
+      setDialog({
+        icon: "🧠",
+        title: t("Quiz", "Quiz", "クイズ"),
+        message: t(
+          "Quiz kommer snart — vi jobber med saken!",
+          "Quiz is coming soon — we're working on it!",
+          "クイズは近日公開！"
+        ),
+        actions: [
+          { text: t("DEN ER GREI", "GOT IT", "OK"), onPress: closeDialog },
+        ],
+      });
       return;
     }
     if (game.locked) {
-      Alert.alert(
-        t("👑 Party Pass", "👑 Party Pass", "👑 パーティーパス"),
-        t(
-          `${game.name} er låst bak Party Pass.`,
-          `${game.name} is locked behind Party Pass.`,
+      setDialog({
+        icon: "👑",
+        title: t("Party Pass", "Party Pass", "パーティーパス"),
+        message: t(
+          `${game.name} er låst bak Party Pass. Lås opp alle spill og modes.`,
+          `${game.name} is locked behind Party Pass. Unlock all games and modes.`,
           `${game.name}はパーティーパスでロックされています。`
-        )
-      );
+        ),
+        actions: [
+          {
+            text: t("LÅS OPP", "UNLOCK", "ロック解除"),
+            gradient: PRO_GRADIENT,
+            textColor: COLORS.proText,
+            onPress: closeDialog,
+          },
+          { text: t("Ikke nå", "Not now", "今はやめる"), secondary: true, onPress: closeDialog },
+        ],
+      });
       return;
     }
     navigation.navigate("ModeSelect", { playerName, game: game.key });
   };
 
   const handleBuyPro = () => {
-    Alert.alert(
-      t("👑 Party Pass", "👑 Party Pass", "👑 パーティーパス"),
-      t(
-        "Lås opp alle spill og modes!",
-        "Unlock all games and modes!",
+    setDialog({
+      icon: "👑",
+      title: t("Party Pass", "Party Pass", "パーティーパス"),
+      message: t(
+        "Lås opp alle spill, alle modes og alt som kommer.",
+        "Unlock all games, all modes and everything to come.",
         "全てのゲームとモードをアンロック！"
-      )
-    );
+      ),
+      actions: [
+        {
+          text: t("KJØP PARTY PASS", "BUY PARTY PASS", "購入する"),
+          gradient: PRO_GRADIENT,
+          textColor: COLORS.proText,
+          onPress: closeDialog,
+        },
+        { text: t("Ikke nå", "Not now", "今はやめる"), secondary: true, onPress: closeDialog },
+      ],
+    });
   };
 
   return (
@@ -230,7 +264,10 @@ export default function HomeScreen({ navigation, route }) {
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + 12, paddingBottom: 90 + insets.bottom + 16 },
+        ]}
         style={{ opacity: fadeAnim }}
       >
         {/* ---------- Header ---------- */}
@@ -254,10 +291,10 @@ export default function HomeScreen({ navigation, route }) {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => navigation.navigate("Intro")}
+              onPress={() => navigation.navigate("Intro", { edit: true, currentName: playerName })}
               activeOpacity={0.85}
               accessibilityRole="button"
-              accessibilityLabel={t("Endre profil", "Edit profile", "プロフィール編集")}
+              accessibilityLabel={t("Endre navn", "Edit name", "名前を変更")}
             >
               <LinearGradient
                 colors={ACCENT_GRADIENT}
@@ -360,7 +397,9 @@ export default function HomeScreen({ navigation, route }) {
                       )}
                       {game.comingSoon && (
                         <View style={[styles.soonBadge, { borderColor: `${game.accent}80` }]}>
-                          <Text style={[styles.soonBadgeText, { color: game.accent }]}>SOON</Text>
+                          <Text style={[styles.soonBadgeText, { color: game.accent }]}>
+                            {t("SNART", "SOON", "近日")}
+                          </Text>
                         </View>
                       )}
                     </View>
@@ -378,7 +417,7 @@ export default function HomeScreen({ navigation, route }) {
       </Animated.ScrollView>
 
       {/* ---------- Pinnet PRO-banner ---------- */}
-      <View style={styles.buyProPinned}>
+      <View style={[styles.buyProPinned, { bottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={handleBuyPro}
@@ -397,6 +436,16 @@ export default function HomeScreen({ navigation, route }) {
           </LinearGradient>
         </TouchableOpacity>
       </View>
+
+      {/* ---------- Midnight-dialog (erstatter Alert) ---------- */}
+      <MidnightModal
+        visible={!!dialog}
+        onClose={closeDialog}
+        icon={dialog?.icon}
+        title={dialog?.title || ""}
+        message={dialog?.message}
+        actions={dialog?.actions || []}
+      />
 
       {/* ---------- Regelmodal ---------- */}
       <Modal
@@ -453,7 +502,7 @@ export default function HomeScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
 
-  scroll: { paddingTop: 56, paddingHorizontal: 24, paddingBottom: 118 },
+  scroll: { paddingHorizontal: 24 },
 
   /* ---------- Header ---------- */
   header: {

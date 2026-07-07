@@ -13,12 +13,14 @@ import {
   Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   MidnightBackground,
   MODE_THEME,
   COLORS,
   FONT,
 } from "../../components/MidnightUI";
+import { getSessionPlayers } from "../../session";
 
 const { width, height } = Dimensions.get("window");
 
@@ -617,14 +619,23 @@ const WORDS_BY_MODE = {
   },
 };
 
+// Kveldens spillere fylles inn automatisk — minst tre felter for Imposter
+const initialPlayers = (playerName) => {
+  const crew = getSessionPlayers();
+  const list = crew.length > 0 ? [...crew] : [playerName];
+  while (list.length < 3) list.push("");
+  return list;
+};
+
 export default function ImposterScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
   const mode = route?.params?.mode || "chill";
 
   const style = MODE_THEME[mode] || MODE_THEME.chill;
+  const insets = useSafeAreaInsets();
 
   const [phase, setPhase] = useState("setup");
-  const [players, setPlayers] = useState([playerName, "", ""]);
+  const [players, setPlayers] = useState(() => initialPlayers(playerName));
   const [roles, setRoles] = useState([]);
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -680,7 +691,7 @@ export default function ImposterScreen({ navigation, route }) {
 
   const restart = () => {
     setPhase("setup");
-    setPlayers([playerName, "", ""]);
+    setPlayers(initialPlayers(playerName));
     setRoles([]);
     setIndex(0);
     setRevealed(false);
@@ -700,7 +711,11 @@ export default function ImposterScreen({ navigation, route }) {
       <MidnightBackground glowColor={style.color} />
 
       <Animated.View
-        style={[styles.topBar, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
+        style={[
+          styles.topBar,
+          { marginTop: insets.top + 16 },
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
       >
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>←</Text>
@@ -776,10 +791,12 @@ export default function ImposterScreen({ navigation, route }) {
                   }}
                   style={styles.input}
                 />
-                {i >= 3 && (
+                {i >= 1 && players.length > 3 && (
                   <TouchableOpacity
                     style={styles.removeBtn}
                     onPress={() => setPlayers(players.filter((_, idx) => idx !== i))}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("Fjern spiller", "Remove player", "削除")}
                   >
                     <Text style={styles.removeBtnText}>×</Text>
                   </TouchableOpacity>
@@ -914,7 +931,7 @@ const styles = StyleSheet.create({
 
   /* ---------- Toppbar ---------- */
   topBar: {
-    marginTop: 72, paddingHorizontal: 24,
+    paddingHorizontal: 24,
     flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 20,
   },
   backBtn: {

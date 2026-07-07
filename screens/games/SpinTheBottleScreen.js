@@ -5,6 +5,7 @@ import {
   ScrollView, Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { t } from "../../i18n";
 import {
   MidnightBackground,
@@ -12,6 +13,7 @@ import {
   COLORS,
   FONT,
 } from "../../components/MidnightUI";
+import { getSessionPlayers, addressDrinkLine } from "../../session";
 
 const { width, height } = Dimensions.get("window");
 
@@ -1781,17 +1783,26 @@ function Bottle({ color }) {
   );
 }
 
+// Kveldens spillere fylles inn automatisk — de kan fjernes og endres her også
+const initialPlayers = (playerName) => {
+  const crew = getSessionPlayers();
+  const list = crew.length > 0 ? [...crew] : [playerName];
+  while (list.length < 2) list.push("");
+  return list;
+};
+
 export default function SpinTheBottleScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
   const mode = route?.params?.mode || "chill";
   const style = MODE_THEME[mode] || MODE_THEME.chill;
+  const insets = useSafeAreaInsets();
 
   const lang = t("no", "en", "en");
   const truths = TRUTHS[mode]?.[lang] || TRUTHS[mode]?.no || TRUTHS.chill.no;
   const dares = DARES[mode]?.[lang] || DARES[mode]?.no || DARES.chill.no;
 
   const [phase, setPhase] = useState("setup");
-  const [players, setPlayers] = useState([playerName, ""]);
+  const [players, setPlayers] = useState(() => initialPlayers(playerName));
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -1850,7 +1861,9 @@ export default function SpinTheBottleScreen({ navigation, route }) {
 
   const pickDare = () => {
     setChallengeType("dare");
-    setChallenge(dares[Math.floor(Math.random() * dares.length)]);
+    const dare = dares[Math.floor(Math.random() * dares.length)];
+    // Drikkenøtter adresseres med navn: «Ta en shot» → «Peter, ta en shot»
+    setChallenge(addressDrinkLine(dare, winner));
   };
 
   const closeModal = () => {
@@ -1888,7 +1901,7 @@ export default function SpinTheBottleScreen({ navigation, route }) {
       <StatusBar barStyle="light-content" />
       <MidnightBackground glowColor={style.color} />
 
-      <Animated.View style={[styles.topBar, { opacity: fadeAnim }]}>
+      <Animated.View style={[styles.topBar, { paddingTop: insets.top + 16 }, { opacity: fadeAnim }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
@@ -1923,10 +1936,12 @@ export default function SpinTheBottleScreen({ navigation, route }) {
                   style={styles.input}
                   autoCapitalize="words"
                 />
-                {i >= 2 && (
+                {i >= 1 && players.length > 2 && (
                   <TouchableOpacity
                     onPress={() => setPlayers(players.filter((_, idx) => idx !== i))}
                     style={styles.removeBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel={lang === "no" ? "Fjern spiller" : "Remove player"}
                   >
                     <Text style={styles.removeBtnText}>✕</Text>
                   </TouchableOpacity>
@@ -2058,7 +2073,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   topBar: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 24, paddingTop: 72, paddingBottom: 16,
+    paddingHorizontal: 24, paddingBottom: 16,
   },
   backBtn: {
     width: 42, height: 42, borderRadius: 21,

@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   MidnightBackground,
   GlassCard,
@@ -629,16 +630,39 @@ const cleanQuestion = (question) => {
     .replace(/^I have never\s+/i, "");
 };
 
+// Husker hvilke spørsmål som er vist per modus i denne økten, slik at
+// «Spill igjen» trekker nye spørsmål først. Nullstilles når appen lukkes.
+const seenThisSession = {};
+
 export default function NeverHaveIEverScreen({ navigation, route }) {
   const playerName = route?.params?.playerName || "Player";
   const mode = route?.params?.mode || "chill";
   const style = MODE_THEME[mode] || MODE_THEME.chill;
+  const insets = useSafeAreaInsets();
 
-  const createDeck = () => {
+  // Trekker usette spørsmål først. Når potten nesten er tom, nullstilles
+  // minnet — men forrige runde holdes utenfor så repetisjonen blir minst mulig.
+  const createDeck = (excluded = []) => {
     const lang = t("no", "en", "en");
     const modeQuestions = QUESTIONS[mode];
-    const questions = modeQuestions?.[lang] || modeQuestions?.no || [];
-    return shuffle(questions).slice(0, ROUND_SIZE);
+    const pool = modeQuestions?.[lang] || modeQuestions?.no || [];
+    const key = `${mode}-${lang}`;
+    const seen = seenThisSession[key] || (seenThisSession[key] = new Set());
+
+    let unseen = pool.filter((q) => !seen.has(q));
+    if (unseen.length < Math.min(ROUND_SIZE, pool.length) / 2) {
+      seen.clear();
+      unseen = pool.filter((q) => !excluded.includes(q));
+      if (unseen.length < ROUND_SIZE) unseen = [...pool];
+    }
+
+    const fresh = shuffle(unseen).slice(0, ROUND_SIZE);
+    const filler = shuffle(pool.filter((q) => !fresh.includes(q)))
+      .slice(0, Math.max(0, ROUND_SIZE - fresh.length));
+    const deck = shuffle([...fresh, ...filler]);
+
+    deck.forEach((q) => seen.add(q));
+    return deck;
   };
 
   const [deck, setDeck] = useState(createDeck);
@@ -716,7 +740,7 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
   };
 
   const restart = () => {
-    const newDeck = createDeck();
+    const newDeck = createDeck(deck);
     setDeck(newDeck);
     setIndex(0);
     setSips(0);
@@ -742,12 +766,11 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
   const sipLabel = lang === "no" ? "Ta en slurk" : "Take a sip";
   const skipLabel = lang === "no" ? "Hopp over →" : "Skip →";
   const doneTitleLabel = lang === "no" ? "Runden er ferdig!" : "Round complete!";
-  const doneSubLabel = lang === "no"
-    ? `${playerName} tok`
-    : `${playerName} took`;
+  const doneSubLabel = lang === "no" ? "Gjengen tok" : "The squad took";
   const sipsWordLabel = lang === "no" ? "slurker" : "sips";
   const doneRoundLabel = lang === "no" ? "denne runden" : "this round";
-  const restartLabel = lang === "no" ? "SPILL IGJEN 🔄" : "PLAY AGAIN 🔄";
+  const restartLabel = lang === "no" ? "SPILL IGJEN – NYE SPØRSMÅL 🔄" : "PLAY AGAIN – NEW QUESTIONS 🔄";
+  const intensityLabel = lang === "no" ? "BYTT INTENSITET →" : "CHANGE INTENSITY →";
   const backLabel = lang === "no" ? "← Tilbake til hjem" : "← Back home";
   const heroSubLabel = lang === "no"
     ? "Svar ærlig. Har du gjort det, tar du en slurk."
@@ -777,6 +800,14 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
               <Text style={styles.restartText}>{restartLabel}</Text>
             </LinearGradient>
           </TouchableOpacity>
+          {/* Tilbake til modusvalget — gjengen varmer gjerne opp mot villere modes */}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[styles.intensityBtn, { borderColor: `${style.color}66` }]}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={[styles.intensityText, { color: style.color }]}>{intensityLabel}</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.homeBtn} onPress={() => navigation.popToTop()}>
             <Text style={styles.homeText}>{backLabel}</Text>
           </TouchableOpacity>
@@ -792,7 +823,13 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
       <StatusBar barStyle="light-content" />
       <MidnightBackground glowColor={style.color} />
 
-      <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+      <Animated.View
+        style={[
+          styles.inner,
+          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 20 },
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
         <View style={styles.topBar}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Text style={styles.backText}>←</Text>
@@ -867,7 +904,7 @@ export default function NeverHaveIEverScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
-  inner: { flex: 1, paddingHorizontal: 24, paddingTop: 56, paddingBottom: 32 },
+  inner: { flex: 1, paddingHorizontal: 24 },
 
   /* ---------- Toppbar ---------- */
   topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 16, marginBottom: 20 },
@@ -919,9 +956,20 @@ const styles = StyleSheet.create({
   doneTitle: { fontFamily: FONT.extra, fontSize: 36, letterSpacing: -1, color: COLORS.text, marginBottom: 12, textAlign: "center" },
   doneSub: { textAlign: "center", fontFamily: FONT.regular, fontSize: 16, lineHeight: 24, color: COLORS.text55, marginBottom: 32 },
   doneHighlight: { fontFamily: FONT.extra },
-  restartBtn: { width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: 14 },
+  restartBtn: { width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: 12 },
   restartGradient: { borderRadius: 16, paddingVertical: 17, alignItems: "center", justifyContent: "center" },
-  restartText: { fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2, color: COLORS.text },
+  restartText: { fontFamily: FONT.bold, fontSize: 14, letterSpacing: 1.5, color: COLORS.text },
+  intensityBtn: {
+    width: "100%",
+    borderRadius: 16,
+    borderWidth: 1.5,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    paddingVertical: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  intensityText: { fontFamily: FONT.bold, fontSize: 13, letterSpacing: 2 },
   homeBtn: { paddingVertical: 12 },
   homeText: { fontFamily: FONT.semi, fontSize: 14, color: COLORS.text40 },
 });

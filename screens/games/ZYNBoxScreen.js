@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   MidnightBackground,
   GlassCard,
@@ -17,6 +18,7 @@ import {
   COLORS,
   FONT,
 } from "../../components/MidnightUI";
+import { drawDrinkCard, hasSessionCrew } from "../../session";
 
 const { width, height } = Dimensions.get("window");
 
@@ -831,16 +833,32 @@ const shuffle = (arr) => {
   return copy;
 };
 
+// Hvert ~6. kort blir et drikkekort med navn når kveldens spillere er lagt inn
+const DRINK_CARD_INTERVAL = 6;
+
 export default function ZYNBoxScreen({ navigation, route }) {
   const mode = route?.params?.mode || "chill";
   const style = MODE_THEME[mode] || MODE_THEME.chill;
+  const insets = useSafeAreaInsets();
 
   const createDeck = () => {
     const lang = t("no", "en", "en");
     const modeStatements = STATEMENTS[mode];
     const statements = modeStatements?.[lang] || modeStatements?.no || [];
     // Waterfall er med i alle modes — én gang per runde
-    return shuffle([...statements, WATERFALL[lang] || WATERFALL.en]);
+    const shuffled = shuffle([...statements, WATERFALL[lang] || WATERFALL.en]);
+
+    // Kortene er objekter slik at drikkekort («Peter, ta en slurk») kan
+    // flettes inn mellom spørsmålene med egen etikett på kortet.
+    const deck = [];
+    shuffled.forEach((text, i) => {
+      deck.push({ text, drink: false });
+      if (hasSessionCrew() && (i + 1) % DRINK_CARD_INTERVAL === 0) {
+        const card = drawDrinkCard(lang);
+        if (card) deck.push({ text: card, drink: true });
+      }
+    });
+    return deck;
   };
 
   const [deck, setDeck] = useState(createDeck);
@@ -870,14 +888,20 @@ export default function ZYNBoxScreen({ navigation, route }) {
   const floatY = floatAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -10] });
 
   const lang = t("no", "en", "en");
-  const cardLabelText = lang === "no" ? "KAST BOKSEN TIL..." : "THROW THE BOX TO...";
+  const currentCard = deck[index];
+  const cardLabelText = currentCard?.drink
+    ? (lang === "no" ? "DRIKKEKORT 🍺" : "DRINK CARD 🍺")
+    : (lang === "no" ? "KAST BOKSEN TIL..." : "THROW THE BOX TO...");
   const heroSubText = lang === "no"
     ? "Les spørsmålet høyt og kast boksen til personen som passer best."
     : "Read the statement out loud and throw the box to whoever fits best.";
-  const throwBtnText = lang === "no" ? "KAST OG NESTE →" : "THROW AND NEXT →";
+  const throwBtnText = currentCard?.drink
+    ? (lang === "no" ? "SKÅL, NESTE →" : "CHEERS, NEXT →")
+    : (lang === "no" ? "KAST OG NESTE →" : "THROW AND NEXT →");
   const doneSubText = lang === "no" ? "Dere fullførte alle" : "You completed all";
   const questionsText = lang === "no" ? "spørsmålene" : "statements";
   const restartText = lang === "no" ? "SPILL IGJEN 🔄" : "PLAY AGAIN 🔄";
+  const intensityText = lang === "no" ? "BYTT INTENSITET →" : "CHANGE INTENSITY →";
   const backText = lang === "no" ? "← Tilbake til hjem" : "← Back home";
 
   const nextCard = () => {
@@ -913,7 +937,13 @@ export default function ZYNBoxScreen({ navigation, route }) {
       <MidnightBackground glowColor={style.color} />
 
       {!done ? (
-        <Animated.View style={[styles.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+        <Animated.View
+          style={[
+            styles.inner,
+            { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 20 },
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
           <View style={styles.topBar}>
             <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
               <Text style={styles.backText}>←</Text>
@@ -943,7 +973,7 @@ export default function ZYNBoxScreen({ navigation, route }) {
               <GlassCard radius={28} contentStyle={styles.cardContent}>
                 <View style={[styles.cardAccentBar, { backgroundColor: style.color }]} />
                 <Text style={[styles.cardLabel, { color: style.color }]}>{cardLabelText}</Text>
-                <Text style={styles.statementText}>{deck[index]}</Text>
+                <Text style={styles.statementText}>{currentCard?.text}</Text>
               </GlassCard>
             </Animated.View>
           </View>
@@ -973,6 +1003,13 @@ export default function ZYNBoxScreen({ navigation, route }) {
               <Text style={styles.restartText}>{restartText}</Text>
             </LinearGradient>
           </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[styles.intensityBtn, { borderColor: `${style.color}66` }]}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={[styles.intensityText, { color: style.color }]}>{intensityText}</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.homeBtn} onPress={() => navigation.popToTop()}>
             <Text style={styles.homeBtnText}>{backText}</Text>
           </TouchableOpacity>
@@ -984,7 +1021,7 @@ export default function ZYNBoxScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
-  inner: { flex: 1, paddingTop: 72, paddingHorizontal: 24, paddingBottom: 36 },
+  inner: { flex: 1, paddingHorizontal: 24 },
 
   /* ---------- Toppbar ---------- */
   topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 24 },
@@ -1024,9 +1061,20 @@ const styles = StyleSheet.create({
   doneTitle: { color: COLORS.text, fontFamily: FONT.extra, fontSize: 36, letterSpacing: -1, marginBottom: 12 },
   doneSub: { textAlign: "center", fontFamily: FONT.regular, fontSize: 16, lineHeight: 24, color: COLORS.text55, marginBottom: 32 },
   doneHighlight: { fontFamily: FONT.extra },
-  restartBtn: { width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: 14 },
+  restartBtn: { width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: 12 },
   restartGradient: { borderRadius: 16, paddingVertical: 17, alignItems: "center", justifyContent: "center" },
   restartText: { color: COLORS.text, fontFamily: FONT.bold, fontSize: 15, letterSpacing: 2 },
+  intensityBtn: {
+    width: "100%",
+    borderRadius: 16,
+    borderWidth: 1.5,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    paddingVertical: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  intensityText: { fontFamily: FONT.bold, fontSize: 13, letterSpacing: 2 },
   homeBtn: { paddingVertical: 12 },
   homeBtnText: { fontFamily: FONT.semi, fontSize: 14, color: COLORS.text40 },
 });

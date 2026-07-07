@@ -14,6 +14,8 @@ import {
   Keyboard,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
   Defs,
   LinearGradient as SvgLinearGradient,
@@ -21,6 +23,7 @@ import Svg, {
   Text as SvgText,
 } from "react-native-svg";
 import { t } from "../i18n";
+import { getSessionPlayers, setSessionPlayers } from "../session";
 import {
   MidnightBackground,
   GlassCard,
@@ -97,8 +100,12 @@ function HeroTitle() {
   );
 }
 
-export default function IntroScreen({ navigation }) {
-  const [name, setName] = useState("");
+export default function IntroScreen({ navigation, route }) {
+  // Redigeringsmodus: åpnes fra avataren på Home for å endre navn
+  const isEdit = !!route?.params?.edit;
+  const insets = useSafeAreaInsets();
+
+  const [name, setName] = useState(route?.params?.currentName || "");
   const [focused, setFocused] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -131,7 +138,22 @@ export default function IntroScreen({ navigation }) {
   const handleStart = () => {
     if (!isReady) return;
     Keyboard.dismiss();
-    navigation.replace("Home", { playerName: name.trim() });
+    const trimmed = name.trim();
+    AsyncStorage.setItem("playerName", trimmed);
+
+    if (isEdit) {
+      // Behold kveldens spillere, men bytt ut brukerens eget navn
+      const others = getSessionPlayers().slice(1);
+      setSessionPlayers([trimmed, ...others]);
+      if (navigation.popTo) {
+        navigation.popTo("Home", { playerName: trimmed });
+      } else {
+        navigation.navigate("Home", { playerName: trimmed });
+      }
+      return;
+    }
+
+    navigation.replace("Birthday", { playerName: trimmed });
   };
 
   const cardY = cardAnim.interpolate({ inputRange: [0, 1], outputRange: [24, 0] });
@@ -150,13 +172,28 @@ export default function IntroScreen({ navigation }) {
         <Animated.View
           style={[
             styles.content,
+            { paddingTop: insets.top, paddingBottom: 24 + insets.bottom },
             { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
           ]}
         >
+          {isEdit && (
+            <TouchableOpacity
+              style={styles.backBtn}
+              onPress={() => navigation.goBack()}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t("Tilbake", "Go back", "戻る")}
+            >
+              <Text style={styles.backText}>←</Text>
+            </TouchableOpacity>
+          )}
+
           {/* ---------- Hero ---------- */}
-          <View style={styles.hero}>
+          <View style={[styles.hero, isEdit && { marginTop: 42 }]}>
             <Text style={styles.eyebrow}>
-              {t("VELKOMMEN TIL", "WELCOME TO", "ようこそ")}
+              {isEdit
+                ? t("PROFILEN DIN", "YOUR PROFILE", "プロフィール")
+                : t("VELKOMMEN TIL", "WELCOME TO", "ようこそ")}
             </Text>
 
             <View style={styles.heroTitleWrap}>
@@ -164,11 +201,17 @@ export default function IntroScreen({ navigation }) {
             </View>
 
             <Text style={styles.subtitle}>
-              {t(
-                "Festen starter i sekundet du åpner appen.",
-                "The party starts the second you open the app.",
-                "アプリを開いた瞬間、パーティーが始まる。"
-              )}
+              {isEdit
+                ? t(
+                    "Endre kallenavnet ditt — det følger deg i alle spill.",
+                    "Change your nickname — it follows you in every game.",
+                    "ニックネームを変更 — すべてのゲームで使われます。"
+                  )
+                : t(
+                    "Festen starter i sekundet du åpner appen.",
+                    "The party starts the second you open the app.",
+                    "アプリを開いた瞬間、パーティーが始まる。"
+                  )}
             </Text>
           </View>
 
@@ -178,11 +221,15 @@ export default function IntroScreen({ navigation }) {
           <Animated.View style={{ opacity: cardAnim, transform: [{ translateY: cardY }] }}>
             <GlassCard radius={28} contentStyle={styles.cardContent}>
               <Text style={styles.cardStep}>
-                {t("STEG 1 AV 2", "STEP 1 OF 2", "ステップ 1 / 2")}
+                {isEdit
+                  ? t("ENDRE NAVN", "EDIT NAME", "名前を変更")
+                  : t("STEG 1 AV 2", "STEP 1 OF 2", "ステップ 1 / 2")}
               </Text>
 
               <Text style={styles.cardTitle}>
-                {t("Hva skal vi kalle deg?", "What should we call you?", "なんて呼べばいい？")}
+                {isEdit
+                  ? t("Hva skal vi kalle deg nå?", "What should we call you now?", "今度はなんて呼べばいい？")
+                  : t("Hva skal vi kalle deg?", "What should we call you?", "なんて呼べばいい？")}
               </Text>
 
               <View style={[styles.inputWrapper, focused && styles.inputFocused]}>
@@ -238,7 +285,9 @@ export default function IntroScreen({ navigation }) {
                     style={styles.buttonGradient}
                   >
                     <Text style={styles.buttonText}>
-                      {t("FORTSETT", "CONTINUE", "次へ")} →
+                      {isEdit
+                        ? t("LAGRE", "SAVE", "保存") + " ✓"
+                        : t("FORTSETT", "CONTINUE", "次へ") + " →"}
                     </Text>
                   </LinearGradient>
                 </ScalePressable>
@@ -247,10 +296,12 @@ export default function IntroScreen({ navigation }) {
           </Animated.View>
 
           {/* ---------- Fremdriftsdots ---------- */}
-          <View style={styles.dots}>
-            <View style={[styles.dot, styles.dotActive]} />
-            <View style={styles.dot} />
-          </View>
+          {!isEdit && (
+            <View style={styles.dots}>
+              <View style={[styles.dot, styles.dotActive]} />
+              <View style={styles.dot} />
+            </View>
+          )}
         </Animated.View>
       </KeyboardAvoidingView>
     </View>
@@ -269,8 +320,20 @@ const styles = StyleSheet.create({
 
   /* ---------- Hero ---------- */
   hero: {
-    marginTop: 134,
+    marginTop: 88,
   },
+  backBtn: {
+    marginTop: 14,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backText: { color: COLORS.text, fontSize: 20, marginTop: -1 },
   eyebrow: {
     fontFamily: FONT.label,
     fontSize: 12,

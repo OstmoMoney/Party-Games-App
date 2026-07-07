@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { t } from "../../i18n";
 import {
   MidnightBackground,
@@ -669,6 +670,7 @@ export default function RiskItScreen({ navigation, route }) {
   const mode = route?.params?.mode || "chill";
   const theme = MODE_THEME[mode] || MODE_THEME.chill;
   const accent = theme.color;
+  const insets = useSafeAreaInsets();
 
   const lang = t("no", "en", "en");
   const modeQuestions = QUESTIONS[mode]?.[lang] || QUESTIONS[mode]?.no || QUESTIONS.chill.no;
@@ -852,7 +854,7 @@ export default function RiskItScreen({ navigation, route }) {
       <Bubble size={40} left={width-40} delay={5000} duration={22000} color={accent} />
 
       {gameState === "intro" && (
-        <Animated.View style={[styles.backWrap, { opacity: fadeAnim }]}>
+        <Animated.View style={[styles.backWrap, { top: insets.top + 10 }, { opacity: fadeAnim }]}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
@@ -965,7 +967,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
 
   backWrap: {
-    position: "absolute", top: 56, left: 24, right: 24,
+    position: "absolute", left: 24, right: 24,
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     zIndex: 10,
   },

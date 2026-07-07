@@ -9,6 +9,8 @@ import Svg, {
   Stop,
   Text as SvgText,
 } from "react-native-svg";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { t } from "./i18n";
 import { MidnightBackground, COLORS, FONT } from "./components/MidnightUI";
 import { useFonts } from "expo-font";
 import {
@@ -21,6 +23,8 @@ import {
 } from "@expo-google-fonts/archivo";
 import { SpaceGrotesk_600SemiBold } from "@expo-google-fonts/space-grotesk";
 import IntroScreen from "./screens/IntroScreen";
+import BirthdayScreen from "./screens/BirthdayScreen";
+import PlayersScreen from "./screens/PlayersScreen";
 import HomeScreen from "./screens/HomeScreen";
 import ModeSelectScreen from "./screens/ModeSelectScreen";
 import NeverHaveIEverScreen from "./screens/games/NeverHaveIEverScreen";
@@ -36,9 +40,11 @@ function ComingSoonScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "#0d0a18", alignItems: "center", justifyContent: "center" }}>
       <Text style={{ fontSize: 48, marginBottom: 16 }}>🚧</Text>
-      <Text style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>Kommer snart</Text>
+      <Text style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>
+        {t("Kommer snart", "Coming soon", "近日公開")}
+      </Text>
       <Text style={{ color: "rgba(255,255,255,0.3)", marginTop: 8, fontSize: 13 }}>
-        Dette spillet er under utvikling
+        {t("Dette spillet er under utvikling", "This game is under development", "このゲームは開発中です")}
       </Text>
     </View>
   );
@@ -150,12 +156,20 @@ export default function App() {
   });
 
   useEffect(() => {
-    AsyncStorage.getItem("playerName").then((savedName) => {
-      if (savedName && savedName.length >= 2) {
-        setInitialRoute("Home");
+    // Navn og fødselsdato lagres permanent — kveldens spillere gjør ikke det,
+    // så returnerende brukere starter alltid på "Hvem spiller du med i dag?"
+    Promise.all([
+      AsyncStorage.getItem("playerName"),
+      AsyncStorage.getItem("playerBirthdate"),
+    ]).then(([savedName, savedBirthdate]) => {
+      if (!savedName || savedName.length < 2) {
+        setInitialRoute("Intro");
+      } else if (!savedBirthdate) {
+        setInitialRoute("Birthday");
         setInitialParams({ playerName: savedName });
       } else {
-        setInitialRoute("Intro");
+        setInitialRoute("Players");
+        setInitialParams({ playerName: savedName });
       }
     });
   }, []);
@@ -163,28 +177,44 @@ export default function App() {
   if (!initialRoute || !fontsLoaded) return null;
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false, animation: "fade" }}>
-        <Stack.Screen
-          name="Intro"
-          component={IntroScreen}
-          options={{ gestureEnabled: false }}
-        />
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          initialParams={initialRoute === "Home" ? initialParams : {}}
-          options={{ gestureEnabled: false }}
-        />
-        <Stack.Screen name="ModeSelect" component={ModeSelectScreen} />
-        <Stack.Screen name="NeverHaveIEver" component={NeverHaveIEverScreen} />
-        <Stack.Screen name="Imposter" component={ImposterScreen} />
-        <Stack.Screen name="ZYNBox" component={ZYNBoxScreen} />
-        <Stack.Screen name="RiskIt" component={RiskItScreen} />
-        <Stack.Screen name="SpinTheBottle" component={SpinTheBottleScreen} />
-        <Stack.Screen name="ComingSoon" component={ComingSoonScreen} />
-      </Stack.Navigator>
-      {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName={initialRoute}
+          screenOptions={{ headerShown: false, animation: "fade" }}
+        >
+          <Stack.Screen
+            name="Intro"
+            component={IntroScreen}
+            options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen
+            name="Birthday"
+            component={BirthdayScreen}
+            initialParams={initialRoute === "Birthday" ? initialParams : {}}
+            options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen
+            name="Players"
+            component={PlayersScreen}
+            initialParams={initialRoute === "Players" ? initialParams : {}}
+            options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen name="ModeSelect" component={ModeSelectScreen} />
+          <Stack.Screen name="NeverHaveIEver" component={NeverHaveIEverScreen} />
+          <Stack.Screen name="Imposter" component={ImposterScreen} />
+          <Stack.Screen name="ZYNBox" component={ZYNBoxScreen} />
+          <Stack.Screen name="RiskIt" component={RiskItScreen} />
+          <Stack.Screen name="SpinTheBottle" component={SpinTheBottleScreen} />
+          <Stack.Screen name="ComingSoon" component={ComingSoonScreen} />
+        </Stack.Navigator>
+        {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
