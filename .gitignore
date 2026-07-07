@@ -42,3 +42,6 @@ yarn-error.*
 
 # lokal web-eksport (bygges ved behov)
 dist-web/
+
+# Lokal web-eksport (generert med expo export)
+dist-web/
